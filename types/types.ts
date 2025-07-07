@@ -1,0 +1,82 @@
+import Fraction from 'fraction.js';
+
+export type Duration = Fraction;
+
+export type TimeSignature = [number, number];
+
+export interface Action {
+  timeMultiplier: TimeMultiplier;
+  dot: number;
+  sound: Sound;
+}
+
+export type Event =
+  | { type: 'Repeater4' } // 四分延长线
+  | { type: 'MultiBarRest'; count: number } // 多小节休止符(?)
+  | { type: 'Action'; value: Action }
+  | { type: 'Pronounce'; syllable?: Syllable }; // 歌词内容(?)
+
+/** 时值 */
+export enum TimeMultiplier {
+  /** 全音符 */
+  Whole = -2,
+  /** 二分音符 */
+  Minim,
+  /** 四分音符 */
+  Crotchet,
+  /** 八分音符 */
+  Quaver,
+  /** 十六分音符 */
+  Semiquaver,
+}
+
+export type Sound =
+  | {
+      type: 'Note';
+      /** 音符, 可能是和弦 */
+      pitches: Pitch[];
+      /** 倚音 */
+      appoggiatura?: Appoggiatura;
+    }
+  | { type: 'Rest' } // 休止符
+  | { type: 'Clap' }; // 简谱的 X
+
+export interface Pitch {
+  /** 对应音符 */
+  whiteKey: WhiteKey;
+  /** 八度升降数，正数表示升高，负数表示降低 */
+  octaveTranspose: number;
+  /** 可能的升降号 */
+  accidental?: Accidental;
+}
+
+/** 与一个音对应的歌词, 防止前缀后缀(标点等)影响对齐 */
+export interface Syllable {
+  prefix?: string;
+  content: string;
+  suffix?: string;
+}
+
+export enum WhiteKey {
+  K1 = 1,
+  K2,
+  K3,
+  K4,
+  K5,
+  K6,
+  K7,
+}
+
+export enum Accidental {
+  Natural = '=',
+  Sharp = '#',
+  Flat = 'b',
+  DoubleSharp = 'x',
+  DoubleFlat = 'bb',
+}
+
+/** 倚音 */
+export interface Appoggiatura {
+  sounds: Sound[];
+}
+
