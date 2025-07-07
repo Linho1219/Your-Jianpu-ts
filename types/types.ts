@@ -16,7 +16,7 @@ export type Event =
   | { type: 'Action'; value: Action }
   | { type: 'Pronounce'; syllable?: Syllable }; // 歌词内容(?)
 
-/** 时值 */
+/** 时值；对应整数为减时线的条数 */
 export enum TimeMultiplier {
   /** 全音符 */
   Whole = -2,
