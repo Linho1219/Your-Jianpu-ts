@@ -46,8 +46,57 @@ export enum Boundary {
   RightOpened = 'RightOpened',
 }
 
+export interface Interval {
+  /** 开始位置 */
+  start: number;
+  /** 结束位置 */
+  end: number;
+}
+
+class IntervalMap<T> {
+  private _map: Map<string, T>;
+  constructor() {
+    this._map = new Map<string, T>();
+  }
+  private static toKey(interval: Interval): string {
+    return `${interval.start},${interval.end}`;
+  }
+  private static fromKey<T>(key: string): Interval {
+    const [start, end] = key.split(',').map(Number);
+    return { start, end };
+  }
+  set(interval: Interval, value: T) {
+    const key = IntervalMap.toKey(interval);
+    this._map.set(key, value);
+  }
+  get(interval: Interval): T | undefined {
+    const key = IntervalMap.toKey(interval);
+    return this._map.get(key);
+  }
+  has(interval: Interval): boolean {
+    const key = IntervalMap.toKey(interval);
+    return this._map.has(key);
+  }
+  delete(interval: Interval): boolean {
+    const key = IntervalMap.toKey(interval);
+    return this._map.delete(key);
+  }
+  clear(): void {
+    this._map.clear();
+  }
+  entries(): [Interval, T][] {
+    return Array.from(this._map.entries()).map(([key, value]) => [
+      IntervalMap.fromKey(key),
+      value,
+    ]);
+  }
+  keys(): Interval[] {
+    return Array.from(this._map.keys()).map(IntervalMap.fromKey);
+  }
+}
+
 // 跨音符装饰结构，映射范围 -> Span
-export type Spans = Map<string, Span>; // key = JSON.stringify(Interval)
+export type Spans = IntervalMap<Span>;
 
 /** 声部 */
 export interface Voice {

@@ -13,6 +13,7 @@ export interface PartialEntity {
   total: Fraction;
 }
 
+/** 拆分结果 */
 interface SliceResult {
   duration: Fraction;
   entities: (AbstractEntity | PartialEntity | null)[];
@@ -98,3 +99,4 @@ export function sliceVoices(rawvoices: AbstractEntity[][]): SliceResult[] {
   }
   return result;
 }
+
