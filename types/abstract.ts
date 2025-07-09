@@ -1,4 +1,4 @@
-import { Duration, Event } from './types';
+import { Duration, Event } from './basic';
 
 // 间隔范围
 export interface Interval {

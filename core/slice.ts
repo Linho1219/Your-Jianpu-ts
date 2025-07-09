@@ -1,5 +1,5 @@
 import Fraction from 'fraction.js';
-import { Event } from '../types/types';
+import { Event } from '../types/basic';
 import {
   AbstractEntity,
   Span,

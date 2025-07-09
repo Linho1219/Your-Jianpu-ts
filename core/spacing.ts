@@ -95,7 +95,7 @@ export interface SlicedUnitWithWidth extends SlicedUnit {
   width: number;
 }
 
-function computeSliceWidths(
+export function computeSliceWidths(
   slices: SlicedUnit[],
   targetWidth: number
 ): SlicedUnitWithWidth[] {
