@@ -22,7 +22,7 @@ export interface PartialEntity {
 
 type SlicedEntity = AbstractEntity | PartialEntity | null;
 
-interface SlicedUnit {
+export interface SlicedUnit {
   /** 一个切片的持续时间 */
   duration: Fraction;
   /** 切片下各个声部的实体 */
