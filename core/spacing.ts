@@ -1,13 +1,12 @@
 import Fraction from 'fraction.js';
-import { PartialEntity, SlicedUnit } from './slice';
-import { AbstractEntity, Entity } from '../types/abstract';
+import { SlicedEntity, SlicedUnit } from './slice';
 
 const gourlayFDefaults = {
   minDurationWidth: 1,
   magic: 0.5,
 } as GourlayFDefaults;
 
-function getSmallestDuration(unit: SlicedUnit): Fraction {
+function getShortestEntityDurationWithinSlice(unit: SlicedUnit): Fraction {
   const entities = unit.entities.filter(
     (e) => !!e && (e.type === 'Event' || e.type === 'PartialEvent')
   );
@@ -19,81 +18,102 @@ function getSmallestDuration(unit: SlicedUnit): Fraction {
 }
 
 interface GourlayFDefaults {
+  /** 单位宽度 */
   minDurationWidth: number;
+  /** 用于微调布局的 magic number */
   magic: number;
 }
 interface GourlayFInputs extends GourlayFDefaults {
-  smallestDuration: Fraction;
-  sliceDuration: Fraction;
+  /** 一个 Slice 中最短音符的时值 */
+  shortestEntityDurationWithinSlice: Fraction;
+  /** 一个行中最短 Slice 的时值 */
+  shortestSliceDuration: Fraction;
 }
 
+/** Gourlay's 计算弹性系数 */
 function gourlayF(inputs: GourlayFInputs): number {
-  const { minDurationWidth, magic, smallestDuration, sliceDuration } = inputs;
-  const durationRatio = smallestDuration.div(sliceDuration).valueOf();
+  const {
+    minDurationWidth,
+    magic,
+    shortestEntityDurationWithinSlice,
+    shortestSliceDuration,
+  } = inputs;
+  const durationRatio = shortestEntityDurationWithinSlice
+    .div(shortestSliceDuration)
+    .valueOf();
   return 1 / (minDurationWidth * (1 + magic * Math.log2(durationRatio)));
 }
 
-function getSliceStiffness(unit: SlicedUnit): number {
-  const smallestDuration = getSmallestDuration(unit);
+function getSliceStiffness(
+  unit: SlicedUnit,
+  minSliceDuration: Fraction
+): number {
+  const smallestDurationWithinSlice =
+    getShortestEntityDurationWithinSlice(unit);
   const sliceDuration = unit.duration;
-  if (smallestDuration.equals(0) || sliceDuration.equals(0)) return 0; // 避免除以 0
-
+  if (smallestDurationWithinSlice.equals(0) || sliceDuration.equals(0))
+    return Infinity;
+  // 对于 Tag，不存在弹性，不可拉伸，即硬度为无穷大。后续可能改动此值
   const inputs: GourlayFInputs = {
     ...gourlayFDefaults,
-    smallestDuration,
-    sliceDuration,
+    shortestEntityDurationWithinSlice: smallestDurationWithinSlice,
+    shortestSliceDuration: minSliceDuration,
   };
-
   return gourlayF(inputs);
 }
 
-/** 弹簧-硬杆模型，SWR */
-interface SpringWithRod {
-  /** 最短长度 */
-  rodLength: number;
-  /** 弹性系数 */
+/** 弹簧模型，F=k·Δx */
+interface Spring {
+  /** 原长度 */
+  restLength: number;
+  /** 弹性系数，硬度，越大越难拉伸 */
   stiffness: number;
 }
 
 /**
- * 计算弹簧系统从其最小长度拉伸到目标长度 targetLength 所需的合力
+ * 计算弹簧系统从其最小长度拉伸(压缩)到目标长度 targetLength 所需的合力
  * @param springs 弹簧结构
  * @param targetLength 目标长度
  * @returns 拉力
  */
-export function calculateSpringForce(
-  springs: SpringWithRod[],
+export function computeSystemForce(
+  springs: Spring[],
   targetLength: number
 ): number {
-  const totalRodLength = springs.reduce((sum, swr) => sum + swr.rodLength, 0);
-  if (targetLength <= totalRodLength) return 0;
   if (!springs.length) throw new Error('Springs array cannot be empty');
+  const totaloriginalLen = springs.reduce(
+    (sum, swr) => sum + swr.restLength,
+    0
+  );
+  const totalDeformation = targetLength - totaloriginalLen; // 正数表示拉伸，负数表示压缩
+  const totalStiffness =
+    1 / springs.reduce((sum, swr) => sum + 1 / swr.stiffness, 0);
+  return totalDeformation / totalStiffness;
+}
 
-  let processedRodLength = 0;
-  let reciprocalSum = 0;
-  let currentForce = 0;
-
-  for (const currentSpring of springs) {
-    const { rodLength, stiffness } = currentSpring;
-    processedRodLength += rodLength;
-    reciprocalSum += 1 / stiffness;
-    currentForce = (1 / reciprocalSum) * processedRodLength;
-    const maxForce = rodLength * stiffness;
-    if (currentForce <= maxForce) break;
-  }
-
-  return currentForce;
+export interface SlicedUnitWithWidth extends SlicedUnit {
+  width: number;
 }
 
 function computeSliceWidths(
   slices: SlicedUnit[],
   targetWidth: number
-): number[] {
-  const springs = slices.map((unit) => ({
-    rodLength: 1, // 后续可能修改？
-    stiffness: getSliceStiffness(unit),
+): SlicedUnitWithWidth[] {
+  const minSliceDuration = slices.reduce(
+    (min, unit) => (min.lt(unit.duration) ? min : unit.duration),
+    new Fraction(Infinity)
+  );
+  const springs: Spring[] = slices.map((unit) => ({
+    restLength: 1, // 后续可能修改？
+    stiffness: getSliceStiffness(unit, minSliceDuration),
   }));
-  const totalForce = calculateSpringForce(springs, targetWidth);
-  return springs.map(({ stiffness }) => totalForce / stiffness);
+  const totalForce = computeSystemForce(springs, targetWidth);
+  return slices.map((unit, index) => {
+    const { stiffness, restLength } = springs[index];
+    return {
+      ...unit,
+      width: restLength + totalForce / stiffness,
+    };
+  });
 }
 

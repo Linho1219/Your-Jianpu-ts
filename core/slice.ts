@@ -20,7 +20,7 @@ export interface PartialEntity {
   total: Fraction;
 }
 
-type SlicedEntity = AbstractEntity | PartialEntity | null;
+export type SlicedEntity = AbstractEntity | PartialEntity | null;
 
 export interface SlicedUnit {
   /** 一个切片的持续时间 */
