@@ -117,3 +117,42 @@ function computeSliceWidths(
   });
 }
 
+function areEntitiesNeighbour(
+  entityA: SlicedEntity,
+  entityB: SlicedEntity
+): boolean {
+  if (!entityA || !entityB) return false;
+  if (entityA.type === 'Tag' || entityB.type === 'Tag') return false;
+  const getDuration = (e: typeof entityA) =>
+    e.type === 'Event' ? e.duration : e.total;
+  return getDuration(entityA).equals(getDuration(entityB));
+}
+
+function areSlicesNeighbour(unitA: SlicedUnit, unitB: SlicedUnit): boolean {
+  return unitA.entities.some((entityA, i) => {
+    const entityB = unitB.entities[i];
+    return areEntitiesNeighbour(entityA, entityB);
+  });
+}
+
+export function groupByNeighbours(
+  slices: SlicedUnitWithWidth[]
+): SlicedUnitWithWidth[][] {
+  if (slices.length === 0) return [];
+
+  const result: SlicedUnitWithWidth[][] = [];
+  let currentGroup: SlicedUnitWithWidth[] = [slices[0]];
+
+  for (let i = 1; i < slices.length; i++) {
+    const prev = slices[i - 1];
+    const curr = slices[i];
+    if (areSlicesNeighbour(prev, curr)) {
+      currentGroup.push(curr);
+    } else {
+      result.push(currentGroup);
+      currentGroup = [curr];
+    }
+  }
+  result.push(currentGroup);
+  return result;
+}
