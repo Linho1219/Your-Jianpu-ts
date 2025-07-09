@@ -5,7 +5,7 @@ import { AbstractEntity, Entity } from '../types/abstract';
 const gourlayFDefaults = {
   minDurationWidth: 1,
   magic: 0.5,
-};
+} as GourlayFDefaults;
 
 function getSmallestDuration(unit: SlicedUnit): Fraction {
   const entities = unit.entities.filter(
@@ -46,3 +46,54 @@ function getSliceStiffness(unit: SlicedUnit): number {
 
   return gourlayF(inputs);
 }
+
+/** 弹簧-硬杆模型，SWR */
+interface SpringWithRod {
+  /** 最短长度 */
+  rodLength: number;
+  /** 弹性系数 */
+  stiffness: number;
+}
+
+/**
+ * 计算弹簧系统从其最小长度拉伸到目标长度 targetLength 所需的合力
+ * @param springs 弹簧结构
+ * @param targetLength 目标长度
+ * @returns 拉力
+ */
+export function calculateSpringForce(
+  springs: SpringWithRod[],
+  targetLength: number
+): number {
+  const totalRodLength = springs.reduce((sum, swr) => sum + swr.rodLength, 0);
+  if (targetLength <= totalRodLength) return 0;
+  if (!springs.length) throw new Error('Springs array cannot be empty');
+
+  let processedRodLength = 0;
+  let reciprocalSum = 0;
+  let currentForce = 0;
+
+  for (const currentSpring of springs) {
+    const { rodLength, stiffness } = currentSpring;
+    processedRodLength += rodLength;
+    reciprocalSum += 1 / stiffness;
+    currentForce = (1 / reciprocalSum) * processedRodLength;
+    const maxForce = rodLength * stiffness;
+    if (currentForce <= maxForce) break;
+  }
+
+  return currentForce;
+}
+
+function computeSliceWidths(
+  slices: SlicedUnit[],
+  targetWidth: number
+): number[] {
+  const springs = slices.map((unit) => ({
+    rodLength: 1, // 后续可能修改？
+    stiffness: getSliceStiffness(unit),
+  }));
+  const totalForce = calculateSpringForce(springs, targetWidth);
+  return springs.map(({ stiffness }) => totalForce / stiffness);
+}
+
