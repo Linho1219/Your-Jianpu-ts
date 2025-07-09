@@ -53,7 +53,7 @@ export interface Interval {
   end: number;
 }
 
-class IntervalMap<T> {
+export class IntervalMap<T> {
   private _map: Map<string, T>;
   constructor() {
     this._map = new Map<string, T>();
