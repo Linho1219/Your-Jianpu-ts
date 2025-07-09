@@ -1,6 +1,6 @@
-import { RenderConfig } from '../types/config';
+import { fromRawRenderConfig } from '../types/config';
 
-export const renderConfig: RenderConfig = {
+export const renderConfig = fromRawRenderConfig({
   pageHeight: 2828.4,
   lineWidth: 1500,
   lineGap: 30,
@@ -26,4 +26,4 @@ export const renderConfig: RenderConfig = {
   slurPaddingX_glyphWidth: 1 / 8,
   slurPaddingBottom_glyphHeight: 1 / 8,
   initialTimeSignature: [4, 4],
-};
+});
