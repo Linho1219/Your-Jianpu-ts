@@ -152,7 +152,7 @@ interface SlicedMusic {
   /** 切片结果 */
   slices: SlicedUnit[];
   /** 跨音符装饰结构的映射 */
-  spansOfSlicedVoices: Spans[];
+  transformedSpans: Spans[];
 }
 
 export function sliceMusic(music: Music): SlicedMusic {
@@ -161,7 +161,7 @@ export function sliceMusic(music: Music): SlicedMusic {
   const spansOfVoices = voices.map((voice) => voice.spans);
 
   const { slicedUnits, slicedVoices } = sliceVoices(entitiesOfVoices);
-  const spansOfSlicedVoices = spansOfVoices.map((spans, index) => {
+  const transformedSpans = spansOfVoices.map((spans, index) => {
     const elements = slicedVoices[index];
     const remapper = getSpansRemapper(elements);
     const newSpans = new IntervalMap<Span>();
@@ -173,6 +173,6 @@ export function sliceMusic(music: Music): SlicedMusic {
 
   return {
     slices: slicedUnits,
-    spansOfSlicedVoices,
+    transformedSpans,
   };
 }

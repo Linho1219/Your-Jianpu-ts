@@ -10,9 +10,11 @@
   "license": "ISC",
   "packageManager": "pnpm@10.12.4",
   "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
     "tsx": "^4.20.3"
   },
   "dependencies": {
-    "fraction.js": "^5.2.2"
+    "fraction.js": "^5.2.2",
+    "lodash-es": "^4.17.21"
   }
 }
