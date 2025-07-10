@@ -10,7 +10,7 @@ import {
   whiteKeyToGlyph,
 } from '../../types/layout';
 import { RenderConfig } from '../../types/config';
-import { Event, Action, Sound, Accidental } from '../../types/basic';
+import { Event, Action, Accidental } from '../../types/basic';
 import { Tag } from '../../types/abstract';
 import { RenderObject, AnchorPosition } from '../../types/layout';
 import { SlicedEntity } from '../slice';
@@ -78,7 +78,16 @@ function drawSound(
   action: Action,
   config: RenderConfig
 ): LayoutTree<RenderObject> {
-  const { dotGap, dotRadius, glyphHeight, glyphWidth } = config;
+  const {
+    dotGap,
+    dotRadius,
+    glyphHeight,
+    glyphWidth,
+    transposeDotGap,
+    transposeDotRadius,
+    beamGap,
+    beamHeight,
+  } = config;
 
   const getGlyph = (glyph: Glyph): LayoutTree<RenderObject> => ({
     type: 'Leaf',
@@ -120,10 +129,49 @@ function drawSound(
     ],
   });
 
+  function getTransposeDots(
+    count: number,
+    direction: 'up' | 'down',
+    beamShift = 0
+  ): LayoutTree<RenderObject> {
+    const dots: LayoutTree<RenderObject>[] = Array.from(
+      { length: count },
+      (_, i) => ({
+        type: 'Node',
+        transform:
+          direction === 'up'
+            ? moveUp(i * (transposeDotGap + 2 * transposeDotRadius))
+            : moveDown(
+                beamShift + i * (transposeDotGap + 2 * transposeDotRadius)
+              ),
+        children: [
+          {
+            type: 'Leaf',
+            anchor:
+              direction === 'up' ? AnchorPosition.Bottom : AnchorPosition.Top,
+            object: { type: 'circle', radius: transposeDotRadius },
+          },
+        ],
+      })
+    );
+
+    return {
+      type: 'Node',
+      transform:
+        direction === 'up'
+          ? moveUp(glyphHeight + transposeDotGap)
+          : moveDown(
+              (beamGap + beamHeight) * action.timeMultiplier + transposeDotGap
+            ),
+      children: dots,
+    };
+  }
+
   switch (action.sound.type) {
     case 'Rest':
     case 'Clap': {
-      const children = [getGlyph(Glyph.G0), getAsideDots(action.dot)];
+      const glyph = action.sound.type === 'Clap' ? Glyph.GX : Glyph.G0;
+      const children = [getGlyph(glyph)];
       if (action.dot) children.push(getAsideDots(action.dot));
       return {
         type: 'Node',
@@ -139,12 +187,21 @@ function drawSound(
         .map((pitch, index) => {
           const children = [getGlyph(whiteKeyToGlyph(pitch.whiteKey))];
           if (pitch.accidental) children.push(getAccidental(pitch.accidental));
-          if (pitch.octaveTranspose) {
-            // TO-DO: add ocative dots
+          if (pitch.octaveTranspose > 0) {
+            children.unshift(getTransposeDots(pitch.octaveTranspose, 'up'));
+          }
+          if (pitch.octaveTranspose < 0) {
+            /** 仅最下面的音符需要避开减时线 */
+            const beamShift = !index
+              ? (beamGap + beamHeight) * action.timeMultiplier
+              : 0;
+            children.push(
+              getTransposeDots(-pitch.octaveTranspose, 'down', beamShift)
+            );
           }
           return {
             type: 'Node',
-            transform: moveUp(index * (glyphHeight + dotGap)),
+            transform: moveUp(index * (glyphHeight + 3 * transposeDotGap)),
             children,
           };
         });
