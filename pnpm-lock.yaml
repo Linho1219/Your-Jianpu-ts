@@ -14,6 +14,9 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
+      svg-builder:
+        specifier: ^2.0.0
+        version: 2.0.0
     devDependencies:
       '@types/lodash-es':
         specifier: ^4.17.12
@@ -203,6 +206,9 @@ packages:
   resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
 
+  svg-builder@2.0.0:
+    resolution: {integrity: sha512-v89FptvyrOy1Gf9KPkIo2jxroCLEZLiGBRTSutL3pzqZe2xnCFltkCLnEjV8QOEJ99PzBa9NGPGEDP9l8MWIrw==}
+
   tsx@4.20.3:
     resolution: {integrity: sha512-qjbnuR9Tr+FJOMBqJCW5ehvIo/buZq7vH7qD7JziU98h6l3qGy0a/yPFjwO+y0/T7GFpNgNAvEcPPVfyT8rrPQ==}
     engines: {node: '>=18.0.0'}
@@ -331,6 +337,8 @@ snapshots:
   lodash-es@4.17.21: {}
 
   resolve-pkg-maps@1.0.0: {}
+
+  svg-builder@2.0.0: {}
 
   tsx@4.20.3:
     dependencies:
