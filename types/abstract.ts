@@ -1,8 +1,10 @@
 import { Duration, Event } from './basic';
 
-// 间隔范围
+/** 间隔范围 */
 export interface Interval {
+  /** 开始位置 */
   start: number;
+  /** 结束位置 */
   end: number;
 }
 
@@ -44,13 +46,6 @@ export enum Boundary {
   Closed = 'Closed',
   LeftOpened = 'LeftOpened',
   RightOpened = 'RightOpened',
-}
-
-export interface Interval {
-  /** 开始位置 */
-  start: number;
-  /** 结束位置 */
-  end: number;
 }
 
 export class IntervalMap<T> {

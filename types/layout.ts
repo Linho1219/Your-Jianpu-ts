@@ -40,7 +40,7 @@ export const IdentityTransform: Transform = {
 
 export type BBox = [XY, XY];
 
-export type BoundingBox = { type: 'BBox'; value: BBox } | { type: 'NoBox' };
+export type BoundingBox = BBox | null;
 
 export enum AnchorPosition {
   Centre,
@@ -121,57 +121,3 @@ export const moveUp = (dy: number) => move(0, -dy);
 export const moveDown = (dy: number) => move(0, dy);
 export const moveLeft = (dx: number) => move(-dx, 0);
 export const moveRight = (dx: number) => move(dx, 0);
-
-// ----------- BoundingBox utility --------------
-
-export const NoBox: BoundingBox = { type: 'NoBox' };
-
-export function BBox(
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number
-): BoundingBox {
-  return {
-    type: 'BBox',
-    value: [
-      [x1, y1],
-      [x2, y2],
-    ],
-  };
-}
-
-export function boxBoundX(box: BoundingBox): [number, number] {
-  if (box.type === 'NoBox') return [0, 0];
-  const [[x1, _], [x2, __]] = box.value;
-  return [x1, x2];
-}
-
-export function boxBoundY(box: BoundingBox): [number, number] {
-  if (box.type === 'NoBox') return [0, 0];
-  const [[_, y1], [__, y2]] = box.value;
-  return [y1, y2];
-}
-
-export function boxBound(box: BoundingBox): [XY, XY] {
-  if (box.type === 'NoBox')
-    return [
-      [0, 0],
-      [0, 0],
-    ];
-  return box.value;
-}
-
-export function mergeBoundingBox(a: BoundingBox, b: BoundingBox): BoundingBox {
-  if (a.type === 'NoBox') return b;
-  if (b.type === 'NoBox') return a;
-  const [[ax1, ay1], [ax2, ay2]] = a.value;
-  const [[bx1, by1], [bx2, by2]] = b.value;
-  return {
-    type: 'BBox',
-    value: [
-      [Math.min(ax1, bx1), Math.min(ay1, by1)],
-      [Math.max(ax2, bx2), Math.max(ay2, by2)],
-    ],
-  };
-}

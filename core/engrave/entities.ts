@@ -15,19 +15,24 @@ import { Tag } from '../../types/abstract';
 import { RenderObject, AnchorPosition } from '../../types/layout';
 import { SlicedEntity } from '../slice';
 
+function engraveSliceElement(
+  element: SlicedEntity,
+  config: RenderConfig
+): LayoutTree<RenderObject> {
+  if (!element || element.type === 'PartialEvent')
+    return {
+      type: 'Node',
+      transform: notrans(),
+      children: [],
+    };
+  if (element.type === 'Event') return drawEvent(element.event, config);
+  if (element.type === 'Tag') return drawTag(element.tag, config);
+  throw new Error('Unknown SliceElement kind');
+}
+
 export const engraveSliceElementWithCfg =
-  (config: RenderConfig) =>
-  (element: SlicedEntity): LayoutTree<RenderObject> => {
-    if (!element || element.type === 'PartialEvent')
-      return {
-        type: 'Node',
-        transform: notrans(),
-        children: [],
-      };
-    if (element.type === 'Event') return drawEvent(element.event, config);
-    if (element.type === 'Tag') return drawTag(element.tag, config);
-    throw new Error('Unknown SliceElement kind');
-  };
+  (config: RenderConfig) => (element: SlicedEntity) =>
+    engraveSliceElement(element, config);
 
 function drawEvent(
   event: Event,

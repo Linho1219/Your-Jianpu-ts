@@ -9,6 +9,8 @@ import {
   Music,
 } from '../types/abstract';
 
+//#region 类型定义
+
 /**
  * 拆分过程中被切开的音
  * 原项目中命名为 ContEvent，觉得并不直观，遂改
@@ -28,6 +30,17 @@ export interface SlicedUnit {
   /** 切片下各个声部的实体 */
   entities: SlicedEntity[];
 }
+
+interface SlicedMusic {
+  /** 切片结果 */
+  slices: SlicedUnit[];
+  /** 跨音符装饰结构的映射 */
+  transformedSpans: Spans[];
+}
+
+//#endregion
+
+//#region 拆分 Voice
 
 /**
  * 将 Music 拆分为横向的一个个 Slice
@@ -123,6 +136,8 @@ function sliceVoices(entitiesOfVoices: AbstractEntity[][]): {
   };
 }
 
+//#endregion
+
 /**
  * 将切片结果中的 Spans 映射到新的切片上
  * @param elements 切片结果中的数组
@@ -146,13 +161,6 @@ function getSpansRemapper(elements: SlicedEntity[]) {
     end: mapperDict.get(end) ?? throwErr(),
   });
   return intervalMapper;
-}
-
-interface SlicedMusic {
-  /** 切片结果 */
-  slices: SlicedUnit[];
-  /** 跨音符装饰结构的映射 */
-  transformedSpans: Spans[];
 }
 
 export function sliceMusic(music: Music): SlicedMusic {

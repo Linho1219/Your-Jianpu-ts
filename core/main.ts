@@ -3,6 +3,7 @@ import { Music } from '../types/abstract';
 import { renderConfig } from './config';
 import { SlicedEntity, sliceMusic } from './slice';
 import { engraveSliceElementWithCfg } from './engrave/entities';
+import { getBoundingBoxWithCfg } from './bounding';
 
 export function engraveMusic(music: Music) {
   const { lineWidth, lineGap } = renderConfig;
@@ -16,9 +17,9 @@ export function engraveMusic(music: Music) {
     line.map(engraveSliceElementWithCfg(renderConfig))
   ); // finished
 
-  // const boxesByLine = baseLayouts.map(line =>
-  //   line.map(el => getBoundingBox(el))
-  // ); // We are here!
+  const boxesByLine = baseLayouts.map((line) =>
+    line.map(getBoundingBoxWithCfg(renderConfig))
+  ); // finished
 
   // const sliceWidths = computeSliceWidths(slices, totalWidth); // spacing.ts 的输出
   // const slicesOffsetX = cumulativeSum(sliceWidths.map((w) => w.width));

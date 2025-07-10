@@ -4,9 +4,13 @@ export type Duration = Fraction;
 
 export type TimeSignature = [number, number];
 
+/** 简谱谱面上的一个数字，0~7/X，可以是和弦 */
 export interface Action {
+  /** 减时线数量 */
   timeMultiplier: TimeMultiplier;
+  /** 附点数量 */
   dot: number;
+  /** 动作内容 */
   sound: Sound;
 }
 
@@ -16,7 +20,7 @@ export type Event =
   | { type: 'Action'; value: Action }
   | { type: 'Pronounce'; syllable?: Syllable }; // 歌词内容(?)
 
-/** 时值；对应整数为减时线的条数 */
+/** 减时线的条数 */
 export enum TimeMultiplier {
   /** 全音符 */
   Whole = -2,
@@ -30,6 +34,7 @@ export enum TimeMultiplier {
   Semiquaver,
 }
 
+/** 0~7/X，可以是和弦 */
 export type Sound =
   | {
       type: 'Note';
@@ -38,9 +43,10 @@ export type Sound =
       /** 倚音 */
       appoggiatura?: Appoggiatura;
     }
-  | { type: 'Rest' } // 休止符
-  | { type: 'Clap' }; // 简谱的 X
+  | { type: 'Rest' }
+  | { type: 'Clap' };
 
+/** 音高 */
 export interface Pitch {
   /** 对应音符 */
   whiteKey: WhiteKey;
@@ -67,6 +73,7 @@ export enum WhiteKey {
   K7,
 }
 
+/** 升降号 */
 export enum Accidental {
   Natural = '=',
   Sharp = '#',
@@ -79,4 +86,3 @@ export enum Accidental {
 export interface Appoggiatura {
   sounds: Sound[];
 }
-
