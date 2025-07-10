@@ -55,7 +55,7 @@ export function getSize(object: RenderObject, config: RenderConfig): Size {
   }
 }
 
-function getBoundingBox(
+export function getBoundingBox(
   tree: LayoutTree<RenderObject>,
   config: RenderConfig
 ): BoundingBox {

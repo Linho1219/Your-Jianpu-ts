@@ -1,10 +1,10 @@
-import { Entity, Interval, Spans } from '../../types/abstract';
+import { Spans } from '../../types/abstract';
 import { RenderConfig } from '../../types/config';
-import { SlicedEntity } from '../slice';
 import {
   AnchorPosition,
   LayoutTree,
   move,
+  notrans,
   RenderObject,
 } from '../../types/layout';
 
@@ -12,7 +12,7 @@ export function engraveBeams(
   filteredOffset: number[],
   spans: Spans,
   config: RenderConfig
-) {
+): LayoutTree<RenderObject> {
   const { beamGap, beamHeight, glyphWidth } = config;
   /** 当前存在的 beam 的结束位置，栈结构 */
   const currBeamEnds: number[] = [];
@@ -56,5 +56,9 @@ export function engraveBeams(
     }
   );
 
-  return beamRects;
+  return {
+    type: 'Node',
+    transform: notrans(),
+    children: beamRects,
+  };
 }

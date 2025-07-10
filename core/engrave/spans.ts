@@ -1,4 +1,4 @@
-import { LayoutTree, move } from '../../types/layout';
+import { LayoutTree, move, notrans } from '../../types/layout';
 import { RenderConfig } from '../../types/config';
 import { RenderObject, AnchorPosition } from '../../types/layout';
 import { Span, Spans } from '../../types/abstract';
@@ -30,10 +30,10 @@ export function engraveSpans(
   filteredOffset: number[],
   spans: Spans,
   config: RenderConfig
-): LayoutTree<RenderObject>[] {
+): LayoutTree<RenderObject> {
   const { glyphWidth } = config;
   const heightHelper = getHeightHelper();
-  return spans
+  const engravedSpansArr = spans
     .entries()
     .filter(([_, span]) => span.type !== 'Beam')
     .sort(([{ start: a }], [{ start: b }]) => a - b) // 按照开始位置升序
@@ -52,6 +52,11 @@ export function engraveSpans(
       heightHelper.addHeight(heightTaken, interval.end);
       return engraved;
     });
+  return {
+    type: 'Node',
+    transform: notrans(),
+    children: engravedSpansArr,
+  };
 }
 
 function engraveSpan(

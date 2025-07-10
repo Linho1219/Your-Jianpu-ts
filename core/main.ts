@@ -3,14 +3,21 @@ import { Music } from '../types/abstract';
 import { renderConfig } from './config';
 import { SlicedEntity, sliceMusic } from './slice';
 import { engraveSliceElementWithCfg } from './engrave/entities';
-import { getBoundingBoxWithCfg } from './bounding';
+import { getBoundingBox, getBoundingBoxWithCfg } from './bounding';
 import { computeSliceWidths } from './spacing';
-import { LayoutTree, moveRight, notrans, RenderObject } from '../types/layout';
+import {
+  LayoutTree,
+  moveDown,
+  moveRight,
+  notrans,
+  RenderObject,
+} from '../types/layout';
 import { engraveBeams } from './engrave/beams';
 import { engraveSpans } from './engrave/spans';
+import { RenderConfig } from '../types/config';
 
 export function engraveMusic(music: Music) {
-  const { lineWidth, lineGap } = renderConfig;
+  const { lineWidth } = renderConfig;
   const { slices } = sliceMusic(music);
 
   const elementsByLine = zip(
@@ -28,34 +35,41 @@ export function engraveMusic(music: Music) {
   const slicesWithWidths = computeSliceWidths(slices, boxesByLine, lineWidth);
   const slicesOffsetX = slicesWithWidths.map((slice) => slice.offsetX);
 
-  const engravedVoices = elementsByLine.map((lineElements, voiceIndex) => {
-    const voice = music.voices[voiceIndex];
-    const boxes = boxesByLine[voiceIndex];
-    const spans = voice.spans;
-    const engravedEntities = engraveBaseNotes(
-      slicesOffsetX,
-      baseLayouts[voiceIndex]
-    );
+  const engravedVoices: LayoutTree<RenderObject>[] = elementsByLine.map(
+    (lineElements, voiceIndex) => {
+      const voice = music.voices[voiceIndex];
+      const boxes = boxesByLine[voiceIndex];
+      const spans = voice.spans;
+      const engravedEntities = engraveBaseNotes(
+        slicesOffsetX,
+        baseLayouts[voiceIndex]
+      );
 
-    /** 下标归一化，index 均为仅 Event 的编号 */
-    const filteredOffset = slicesOffsetX.filter((_, index) => {
-      const ele = lineElements[index];
-      return !!ele && ele.type === 'Event';
-    });
-    const engravedBeams = engraveBeams(filteredOffset, spans, renderConfig); // finished
-    const engravedSpans = engraveSpans(slicesOffsetX, spans, renderConfig);
-    return {
+      /** 下标归一化，index 均为仅 Event 的编号 */
+      const filteredOffset = slicesOffsetX.filter((_, index) => {
+        const ele = lineElements[index];
+        return !!ele && ele.type === 'Event';
+      });
+      const engravedBeams = engraveBeams(filteredOffset, spans, renderConfig); // finished
+      const engravedSpans = engraveSpans(slicesOffsetX, spans, renderConfig);
+      return {
+        type: 'Node',
+        transform: notrans(),
+        children: [engravedEntities, engravedBeams, engravedSpans],
+      };
+    }
+  );
+
+  const offsetsY = layoutVoicesVertically(engravedVoices, renderConfig);
+  return {
+    type: 'Node',
+    transform: notrans(),
+    children: engravedVoices.map((voice, i) => ({
       type: 'Node',
-      transform: notrans(),
-      children: [engravedEntities, engravedBeams, engravedSpans],
-    };
-  });
-
-  // const offsetsY = layoutVoicesVertically(engravedVoices, lineGap);
-  // return {
-  //   type: 'Node',
-  //   children: engravedVoices.map((voice, i) => moveDown(voice, offsetsY[i])),
-  // };
+      transform: moveDown(offsetsY[i]),
+      children: [voice],
+    })),
+  };
 }
 
 function engraveBaseNotes(
@@ -74,4 +88,25 @@ function engraveBaseNotes(
       };
     }),
   };
+}
+
+function layoutVoicesVertically(
+  voices: LayoutTree<RenderObject>[],
+  config: RenderConfig
+): number[] {
+  const offsets: number[] = [];
+  let currentOffset = 0;
+
+  for (const voice of voices) {
+    offsets.push(currentOffset);
+
+    const bbox = getBoundingBox(voice, config);
+    const [[_x1, y1], [_x2, y2]] = bbox ?? [
+      [0, 0],
+      [0, 0],
+    ];
+    const height = y2 - y1;
+    currentOffset += height + config.lineGap;
+  }
+  return offsets;
 }
