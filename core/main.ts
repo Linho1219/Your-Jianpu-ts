@@ -7,22 +7,23 @@ import { getBoundingBoxWithCfg } from './bounding';
 import { computeSliceWidths } from './spacing';
 import { LayoutTree, moveRight, notrans, RenderObject } from '../types/layout';
 import { engraveBeams } from './engrave/beams';
+import { engraveSpans } from './engrave/spans';
 
 export function engraveMusic(music: Music) {
   const { lineWidth, lineGap } = renderConfig;
-  const { slices, /* transformedSpans */ } = sliceMusic(music);
-  // const elementsByLine = transpose(slices.map(slice => slice.entities));
+  const { slices } = sliceMusic(music);
+
   const elementsByLine = zip(
     ...slices.map((slice) => slice.entities)
-  ) as SlicedEntity[][]; // finished
+  ) as SlicedEntity[][];
 
   const baseLayouts = elementsByLine.map((line) =>
     line.map(engraveSliceElementWithCfg(renderConfig))
-  ); // finished
+  );
 
   const boxesByLine = baseLayouts.map((line) =>
     line.map(getBoundingBoxWithCfg(renderConfig))
-  ); // finished
+  );
 
   const slicesWithWidths = computeSliceWidths(slices, boxesByLine, lineWidth);
   const slicesOffsetX = slicesWithWidths.map((slice) => slice.offsetX);
@@ -31,21 +32,28 @@ export function engraveMusic(music: Music) {
     const voice = music.voices[voiceIndex];
     const boxes = boxesByLine[voiceIndex];
     const spans = voice.spans;
-    const baseNotes = engraveBaseNotes(slicesOffsetX, baseLayouts[voiceIndex]);
-    const beams = engraveBeams(
+    const engravedEntities = engraveBaseNotes(
       slicesOffsetX,
-      spans,
-      lineElements,
-      renderConfig
-    ); // finished
+      baseLayouts[voiceIndex]
+    );
 
-    // const spanLines = engraveSpans(slicesOffsetX, spans, boxes);
-    // return merge([baseNotes, beams, spanLines]);
+    /** 下标归一化，index 均为仅 Event 的编号 */
+    const filteredOffset = slicesOffsetX.filter((_, index) => {
+      const ele = lineElements[index];
+      return !!ele && ele.type === 'Event';
+    });
+    const engravedBeams = engraveBeams(filteredOffset, spans, renderConfig); // finished
+    const engravedSpans = engraveSpans(slicesOffsetX, spans, renderConfig);
+    return {
+      type: 'Node',
+      transform: notrans(),
+      children: [engravedEntities, engravedBeams, engravedSpans],
+    };
   });
 
   // const offsetsY = layoutVoicesVertically(engravedVoices, lineGap);
   // return {
-  //   type: 'group',
+  //   type: 'Node',
   //   children: engravedVoices.map((voice, i) => moveDown(voice, offsetsY[i])),
   // };
 }

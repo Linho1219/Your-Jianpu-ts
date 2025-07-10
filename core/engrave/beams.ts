@@ -9,19 +9,11 @@ import {
 } from '../../types/layout';
 
 export function engraveBeams(
-  slicesOffsetX: number[],
-  /** 基于 Event 的编号 */
+  filteredOffset: number[],
   spans: Spans,
-  lineElements: SlicedEntity[],
   config: RenderConfig
 ) {
   const { beamGap, beamHeight, glyphWidth } = config;
-  /** 下标归一化，index 均为仅 Event 的编号 */
-  const filteredOffset = slicesOffsetX.filter((_, index) => {
-    const ele = lineElements[index];
-    return !!ele && ele.type === 'Event';
-  });
-
   /** 当前存在的 beam 的结束位置，栈结构 */
   const currBeamEnds: number[] = [];
   const beams = spans
