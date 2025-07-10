@@ -32,20 +32,6 @@ function applyTransform(box: BoundingBox, transform: Transform): BoundingBox {
   ];
 }
 
-export const NoBox: BoundingBox = null;
-
-function boxBoundX(box: BoundingBox): [number, number] {
-  if (!box) return [0, 0];
-  const [[x1, _], [x2, __]] = box;
-  return [x1, x2];
-}
-
-function boxBoundY(box: BoundingBox): [number, number] {
-  if (!box) return [0, 0];
-  const [[_, y1], [__, y2]] = box;
-  return [y1, y2];
-}
-
 //#endregion
 
 export function getSize(object: RenderObject, config: RenderConfig): Size {
