@@ -6,10 +6,11 @@ import { engraveSliceElementWithCfg } from './engrave/entities';
 import { getBoundingBoxWithCfg } from './bounding';
 import { computeSliceWidths } from './spacing';
 import { LayoutTree, moveRight, notrans, RenderObject } from '../types/layout';
+import { engraveBeams } from './engrave/beams';
 
 export function engraveMusic(music: Music) {
   const { lineWidth, lineGap } = renderConfig;
-  const { slices, transformedSpans } = sliceMusic(music);
+  const { slices, /* transformedSpans */ } = sliceMusic(music);
   // const elementsByLine = transpose(slices.map(slice => slice.entities));
   const elementsByLine = zip(
     ...slices.map((slice) => slice.entities)
@@ -23,16 +24,21 @@ export function engraveMusic(music: Music) {
     line.map(getBoundingBoxWithCfg(renderConfig))
   ); // finished
 
-  const slicesWidths = computeSliceWidths(slices, boxesByLine, lineWidth);
+  const slicesWithWidths = computeSliceWidths(slices, boxesByLine, lineWidth);
+  const slicesOffsetX = slicesWithWidths.map((slice) => slice.offsetX);
 
   const engravedVoices = elementsByLine.map((lineElements, voiceIndex) => {
+    const voice = music.voices[voiceIndex];
     const boxes = boxesByLine[voiceIndex];
-    const spans = transformedSpans[voiceIndex]; // sliceMusic 输出的 spans
-    const baseNotes = engraveBaseNotes(
-      slicesWidths.map((s) => s.offsetX),
-      baseLayouts[voiceIndex]
-    );
-    // const beams = engraveBeams(slicesOffsetX, spans, lineElements);
+    const spans = voice.spans;
+    const baseNotes = engraveBaseNotes(slicesOffsetX, baseLayouts[voiceIndex]);
+    const beams = engraveBeams(
+      slicesOffsetX,
+      spans,
+      lineElements,
+      renderConfig
+    ); // finished
+
     // const spanLines = engraveSpans(slicesOffsetX, spans, boxes);
     // return merge([baseNotes, beams, spanLines]);
   });

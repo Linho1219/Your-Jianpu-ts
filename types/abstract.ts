@@ -35,12 +35,12 @@ export enum Tag {
 
 /** 跨越多个音符的装饰结构 */
 export type Span =
-  | 'Slur' // 连音线
-  | 'Tie' // 延音线
+  | { type: 'Slur' } // 连音线
+  | { type: 'Tie' } // 延音线
   | { type: 'TieInChord'; indices: number[] } // 和弦内延音线
   | { type: 'Tuplet'; value: number } // 多连音
-  | 'Beam' // 减时线(?)
-  | 'Fermata';
+  | { type: 'Beam' } // 减时线
+  | { type: 'Fermata' };
 
 export enum Boundary {
   Closed = 'Closed',

@@ -31,13 +31,6 @@ export interface SlicedUnit {
   entities: SlicedEntity[];
 }
 
-interface SlicedMusic {
-  /** 切片结果 */
-  slices: SlicedUnit[];
-  /** 跨音符装饰结构的映射 */
-  transformedSpans: Spans[];
-}
-
 //#endregion
 
 //#region 拆分 Voice
@@ -140,47 +133,48 @@ function sliceVoices(entitiesOfVoices: AbstractEntity[][]): {
 
 /**
  * 将切片结果中的 Spans 映射到新的切片上
+ * 意义存疑
  * @param elements 切片结果中的数组
  * @returns 一个函数，接受 Interval 并返回新的 Interval
  */
-function getSpansRemapper(elements: SlicedEntity[]) {
-  /** 是否是有效实体（非 Tag 和 null） */
-  const mask = elements.map((e) => e && e.type === 'Event');
-  /** 旧 index -> 新 index 的映射 */
-  const mapperDict = new Map<number, number>();
-  for (let oldIndex = 0, newIndex = 0; newIndex < mask.length; newIndex++) {
-    if (!mask[newIndex]) continue;
-    mapperDict.set(oldIndex++, newIndex);
-  }
-  const throwErr = () => {
-    throw new Error('Invalid interval mapping');
-  };
-  /** @throws 若映射失败则报错 */
-  const intervalMapper = ({ start, end }: Interval): Interval => ({
-    start: mapperDict.get(start) ?? throwErr(),
-    end: mapperDict.get(end) ?? throwErr(),
-  });
-  return intervalMapper;
-}
+// function getSpansRemapper(elements: SlicedEntity[]) {
+//   /** 是否是有效实体（非 Tag 和 null） */
+//   const mask = elements.map((e) => e && e.type === 'Event');
+//   /** 旧 index -> 新 index 的映射 */
+//   const mapperDict = new Map<number, number>();
+//   for (let oldIndex = 0, newIndex = 0; newIndex < mask.length; newIndex++) {
+//     if (!mask[newIndex]) continue;
+//     mapperDict.set(oldIndex++, newIndex);
+//   }
+//   const throwErr = () => {
+//     throw new Error('Invalid interval mapping');
+//   };
+//   /** @throws 若映射失败则报错 */
+//   const intervalMapper = ({ start, end }: Interval): Interval => ({
+//     start: mapperDict.get(start) ?? throwErr(),
+//     end: mapperDict.get(end) ?? throwErr(),
+//   });
+//   return intervalMapper;
+// }
 
-export function sliceMusic(music: Music): SlicedMusic {
+export function sliceMusic(music: Music) {
   const { voices } = music;
   const entitiesOfVoices = voices.map((voice) => voice.entities);
   const spansOfVoices = voices.map((voice) => voice.spans);
 
   const { slicedUnits, slicedVoices } = sliceVoices(entitiesOfVoices);
-  const transformedSpans = spansOfVoices.map((spans, index) => {
-    const elements = slicedVoices[index];
-    const remapper = getSpansRemapper(elements);
-    const newSpans = new IntervalMap<Span>();
-    spans.entries().forEach(([interval, span]) => {
-      newSpans.set(remapper(interval), span);
-    });
-    return newSpans;
-  });
+  // const transformedSpans = spansOfVoices.map((spans, index) => {
+  //   const elements = slicedVoices[index];
+  //   const remapper = getSpansRemapper(elements);
+  //   const newSpans = new IntervalMap<Span>();
+  //   spans.entries().forEach(([interval, span]) => {
+  //     newSpans.set(remapper(interval), span);
+  //   });
+  //   return newSpans;
+  // });
 
   return {
     slices: slicedUnits,
-    transformedSpans,
+    // transformedSpans,
   };
 }
