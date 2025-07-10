@@ -38,7 +38,6 @@ export function engraveMusic(music: Music) {
   const engravedVoices: LayoutTree<RenderObject>[] = elementsByLine.map(
     (lineElements, voiceIndex) => {
       const voice = music.voices[voiceIndex];
-      const boxes = boxesByLine[voiceIndex];
       const spans = voice.spans;
       const engravedEntities = engraveBaseNotes(
         slicesOffsetX,
