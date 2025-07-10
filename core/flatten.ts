@@ -1,9 +1,4 @@
-import { LayoutTree, Transform, LayoutFlat } from '../types/layout';
-
-const identityTransform: Transform = {
-  localPosition: [0, 0],
-  localScale: [1, 1],
-};
+import { LayoutTree, Transform, LayoutFlat, notrans } from '../types/layout';
 
 function combineTransform(t1: Transform, t2: Transform): Transform {
   const {
@@ -22,7 +17,7 @@ function combineTransform(t1: Transform, t2: Transform): Transform {
 
 export function flattenLayoutTree<T>(
   tree: LayoutTree<T>,
-  accTransform: Transform = identityTransform
+  accTransform: Transform = notrans()
 ): LayoutFlat<T> {
   if (tree.type === 'Leaf') {
     return [[accTransform, tree.anchor, tree.object]];
