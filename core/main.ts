@@ -26,11 +26,11 @@ export function engraveMusic(
     ...slices.map((slice) => slice.entities)
   ) as SlicedEntity[][];
 
-  const baseLayouts = elementsByLine.map((line) =>
+  const engravedElementsByLine = elementsByLine.map((line) =>
     line.map(engraveSliceElementWithCfg(config))
   );
 
-  const boxesByLine = baseLayouts.map((line) =>
+  const boxesByLine = engravedElementsByLine.map((line) =>
     line.map(getBoundingBoxWithCfg(config))
   );
 
@@ -43,7 +43,7 @@ export function engraveMusic(
       const spans = voice.spans;
       const engravedEntities = engraveBaseNotes(
         slicesOffsetX,
-        baseLayouts[voiceIndex]
+        engravedElementsByLine[voiceIndex]
       );
 
       /** 下标归一化，index 均为仅 Event 的编号 */
@@ -99,13 +99,12 @@ function layoutVoicesVertically(
   let currentOffset = 0;
 
   for (const voice of voices) {
-    offsets.push(currentOffset);
-
     const bbox = getBoundingBox(voice, config);
     const [[_x1, y1], [_x2, y2]] = bbox ?? [
       [0, 0],
       [0, 0],
     ];
+    offsets.push(currentOffset + y1 < 0 ? -y1 : 0);
     const height = y2 - y1;
     currentOffset += height + config.lineGap;
   }
