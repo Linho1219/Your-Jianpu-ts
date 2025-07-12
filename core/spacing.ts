@@ -8,7 +8,7 @@ const gourlayFDefaults = {
   magic: 1,
 } as GourlayFDefaults;
 
-const MAGICMAX = new Fraction(128);
+const MAGICMAX = new Fraction(998244353);
 
 //#region 类型与工具定义
 
@@ -126,7 +126,7 @@ export function computeSliceWidths(
 ): SlicedUnitWithWidth[] {
   const shortestSliceDuration = slices.reduce(
     (min, unit) =>
-      min.lt(unit.duration) || unit.duration.lte(0) ? min : unit.duration,
+      min.gt(unit.duration) && unit.duration.gt(0) ? unit.duration : min,
     new Fraction(MAGICMAX)
   );
   const negXs = boxesBySlice.map((boxesOfSlice) => {
