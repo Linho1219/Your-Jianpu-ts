@@ -88,6 +88,13 @@ export class IntervalMap<T> {
   keys(): Interval[] {
     return Array.from(this._map.keys()).map(IntervalMap.fromKey);
   }
+  static fromRecords<T>(records: [Interval, T][]): IntervalMap<T> {
+    const map = new IntervalMap<T>();
+    for (const [interval, value] of records) {
+      map.set(interval, value);
+    }
+    return map;
+  }
 }
 
 // 跨音符装饰结构，映射范围 -> Span

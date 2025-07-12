@@ -8,6 +8,8 @@ const gourlayFDefaults = {
   magic: 0.5,
 } as GourlayFDefaults;
 
+const MAGICMAX = new Fraction(128);
+
 //#region 类型与工具定义
 
 interface GourlayFDefaults {
@@ -118,7 +120,7 @@ export function computeSliceWidths(
 ): SlicedUnitWithWidth[] {
   const minSliceDuration = slices.reduce(
     (min, unit) => (min.lt(unit.duration) ? min : unit.duration),
-    new Fraction(Infinity)
+    new Fraction(MAGICMAX)
   );
   const restLengths = (zip(...boxes) as BoundingBox[][]).map((boxesOfSlice) =>
     boxesOfSlice.reduce((min, box) => Math.min(min, getBoxWidth(box)), Infinity)
@@ -165,9 +167,7 @@ function areSlicesNeighbour(unitA: SlicedUnit, unitB: SlicedUnit): boolean {
   });
 }
 
-export function groupByNeighbours(
-  slices: SlicedUnit[]
-): SlicedUnit[][] {
+export function groupByNeighbours(slices: SlicedUnit[]): SlicedUnit[][] {
   if (slices.length === 0) return [];
 
   const result: SlicedUnit[][] = [];

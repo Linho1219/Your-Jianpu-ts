@@ -1,6 +1,5 @@
 import { zip } from 'lodash-es';
 import { Music } from '../types/abstract';
-import { renderConfig } from './config';
 import { SlicedEntity, sliceMusic } from './slice';
 import { engraveSliceElementWithCfg } from './engrave/entities';
 import { getBoundingBox, getBoundingBoxWithCfg } from './bounding';
@@ -16,8 +15,11 @@ import { engraveBeams } from './engrave/beams';
 import { engraveSpans } from './engrave/spans';
 import { RenderConfig } from '../types/config';
 
-export function engraveMusic(music: Music) {
-  const { lineWidth } = renderConfig;
+export function engraveMusic(
+  music: Music,
+  config: RenderConfig
+): LayoutTree<RenderObject> {
+  const { lineWidth } = config;
   const { slices } = sliceMusic(music);
 
   const elementsByLine = zip(
@@ -25,11 +27,11 @@ export function engraveMusic(music: Music) {
   ) as SlicedEntity[][];
 
   const baseLayouts = elementsByLine.map((line) =>
-    line.map(engraveSliceElementWithCfg(renderConfig))
+    line.map(engraveSliceElementWithCfg(config))
   );
 
   const boxesByLine = baseLayouts.map((line) =>
-    line.map(getBoundingBoxWithCfg(renderConfig))
+    line.map(getBoundingBoxWithCfg(config))
   );
 
   const slicesWithWidths = computeSliceWidths(slices, boxesByLine, lineWidth);
@@ -49,8 +51,8 @@ export function engraveMusic(music: Music) {
         const ele = lineElements[index];
         return !!ele && ele.type === 'Event';
       });
-      const engravedBeams = engraveBeams(filteredOffset, spans, renderConfig); // finished
-      const engravedSpans = engraveSpans(slicesOffsetX, spans, renderConfig);
+      const engravedBeams = engraveBeams(filteredOffset, spans, config); // finished
+      const engravedSpans = engraveSpans(slicesOffsetX, spans, config);
       return {
         type: 'Node',
         transform: notrans(),
@@ -59,7 +61,7 @@ export function engraveMusic(music: Music) {
     }
   );
 
-  const offsetsY = layoutVoicesVertically(engravedVoices, renderConfig);
+  const offsetsY = layoutVoicesVertically(engravedVoices, config);
   return {
     type: 'Node',
     transform: notrans(),

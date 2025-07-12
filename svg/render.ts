@@ -1,3 +1,4 @@
+/// <reference types="./svgBuilder.d.ts" />
 import svgBuilder from 'svg-builder';
 import {
   DrawDirective,
@@ -5,6 +6,7 @@ import {
   RenderObject,
 } from '../types/layout';
 import { RenderConfig } from '../types/config';
+import { getSize } from '../core/bounding';
 
 export function renderSVG(
   flatLayout: DrawDirective<RenderObject>[],
@@ -18,14 +20,15 @@ export function renderSVG(
     const [anchorX, anchorY] = normAnchorPosition(anchor);
     const [posX, posY] = transform.localPosition;
     const [scaleX, scaleY] = transform.localScale;
-    const x = posX + width * scaleX * anchorX;
-    const y = posY + height * scaleY * anchorY;
+    const [objWidth, objHeight] = getSize(object, config);
+    const x = posX + objWidth * scaleX * anchorX;
+    const y = posY + objHeight * scaleY * anchorY;
     switch (object.type) {
       case 'circle':
-        svg = svg.element('circle', { cx: x, cy: y, r: object.radius });
+        svg = svg.circle({ cx: x, cy: y, r: object.radius });
         break;
       case 'rectangle':
-        svg = svg.element('rect', {
+        svg = svg.rect({
           x,
           y,
           width: object.width,
@@ -33,7 +36,7 @@ export function renderSVG(
         });
         break;
       case 'curve':
-        svg = svg.element('path', {
+        svg = svg.path({
           d: generateQuadraticBezierPath(x, y, object.width, object.height),
           fill: 'none',
           stroke: '#000',
@@ -41,7 +44,7 @@ export function renderSVG(
         });
         break;
       case 'glyph':
-        svg = svg.element('image', {
+        svg = svg.image({
           href: `svg/${object.value}.svg`,
           x,
           y,
@@ -50,7 +53,7 @@ export function renderSVG(
         });
         break;
       case 'accidental':
-        svg = svg.element('image', {
+        svg = svg.image({
           href: `svg/${object.value}.svg`,
           x,
           y,
@@ -59,8 +62,7 @@ export function renderSVG(
         });
         break;
       case 'text': {
-        svg = svg.element(
-          'text',
+        svg = svg.text(
           {
             x,
             y,

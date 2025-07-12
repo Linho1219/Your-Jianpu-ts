@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  svg-builder:
+    hash: 5e8a0cc510c36262faf2527bcc445029c50bbb6a8f860a395bfd86bc40fa9919
+    path: patches/svg-builder.patch
+
 importers:
 
   .:
@@ -16,11 +21,14 @@ importers:
         version: 4.17.21
       svg-builder:
         specifier: ^2.0.0
-        version: 2.0.0
+        version: 2.0.0(patch_hash=5e8a0cc510c36262faf2527bcc445029c50bbb6a8f860a395bfd86bc40fa9919)
     devDependencies:
       '@types/lodash-es':
         specifier: ^4.17.12
         version: 4.17.12
+      '@types/node':
+        specifier: ^24.0.13
+        version: 24.0.13
       tsx:
         specifier: ^4.20.3
         version: 4.20.3
@@ -183,6 +191,9 @@ packages:
   '@types/lodash@4.17.20':
     resolution: {integrity: sha512-H3MHACvFUEiujabxhaI/ImO6gUrd8oOurg7LQtS7mbwIXA/cUqWrvBsaeJ23aZEPk1TAYkurjfMbSELfoCXlGA==}
 
+  '@types/node@24.0.13':
+    resolution: {integrity: sha512-Qm9OYVOFHFYg3wJoTSrz80hoec5Lia/dPp84do3X7dZvLikQvM1YpmvTBEdIr/e+U8HTkFjLHLnl78K/qjf+jQ==}
+
   esbuild@0.25.5:
     resolution: {integrity: sha512-P8OtKZRv/5J5hhz0cUAdu/cLuPIKXpQl1R9pZtvmHWQvrAUVd0UNIPT4IB4W3rNOqVO0rlqHmCIbSwxh/c9yUQ==}
     engines: {node: '>=18'}
@@ -213,6 +224,9 @@ packages:
     resolution: {integrity: sha512-qjbnuR9Tr+FJOMBqJCW5ehvIo/buZq7vH7qD7JziU98h6l3qGy0a/yPFjwO+y0/T7GFpNgNAvEcPPVfyT8rrPQ==}
     engines: {node: '>=18.0.0'}
     hasBin: true
+
+  undici-types@7.8.0:
+    resolution: {integrity: sha512-9UJ2xGDvQ43tYyVMpuHlsgApydB8ZKfVYTsLDhXkFL/6gfkp+U8xTGdh8pMJv1SpZna0zxG1DwsKZsreLbXBxw==}
 
 snapshots:
 
@@ -297,6 +311,10 @@ snapshots:
 
   '@types/lodash@4.17.20': {}
 
+  '@types/node@24.0.13':
+    dependencies:
+      undici-types: 7.8.0
+
   esbuild@0.25.5:
     optionalDependencies:
       '@esbuild/aix-ppc64': 0.25.5
@@ -338,7 +356,7 @@ snapshots:
 
   resolve-pkg-maps@1.0.0: {}
 
-  svg-builder@2.0.0: {}
+  svg-builder@2.0.0(patch_hash=5e8a0cc510c36262faf2527bcc445029c50bbb6a8f860a395bfd86bc40fa9919): {}
 
   tsx@4.20.3:
     dependencies:
@@ -346,3 +364,5 @@ snapshots:
       get-tsconfig: 4.10.1
     optionalDependencies:
       fsevents: 2.3.3
+
+  undici-types@7.8.0: {}

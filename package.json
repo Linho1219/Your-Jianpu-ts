@@ -11,6 +11,7 @@
   "packageManager": "pnpm@10.12.4",
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
+    "@types/node": "^24.0.13",
     "tsx": "^4.20.3"
   },
   "dependencies": {

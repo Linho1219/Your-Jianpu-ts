@@ -1,0 +1,62 @@
+diff --git a/elements/image.js b/elements/image.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..24fee325a43b3ef046f54cd498293a32f4e5921c
+--- /dev/null
++++ b/elements/image.js
+@@ -0,0 +1,30 @@
++'use strict';
++
++var Element = require('./element');
++
++module.exports = Element.extend({
++
++    constructor: function () {
++
++        this.name = 'image';
++
++        this.permittedContent = 'any';
++
++        this.permittedAttributes = [
++            'graphicalevent',
++            'presentation',
++            'core',
++            'conditionalprocessing',
++            [
++                'style',
++                'class',
++                'externalResourcesRequired',
++                'transform'
++            ]
++        ];
++
++        Element.constructor.apply(this, arguments);
++
++    }
++
++});
+\ No newline at end of file
+diff --git a/elements/index.js b/elements/index.js
+index ec38404c03b810f74dbd4a1c1aef4417a3bc2987..51eef0aaba83a7652acfa1246759c02e459eb318 100644
+--- a/elements/index.js
++++ b/elements/index.js
+@@ -9,3 +9,4 @@ module.exports.Line = require('./line');
+ module.exports.Rect = require('./rect');
+ module.exports.Path = require('./path');
+ module.exports.Style = require('./style');
++module.exports.Image = require('./image');
+\ No newline at end of file
+diff --git a/index.js b/index.js
+index b0d7e487d4f87ddd9f4f974ae4841afce93323b0..f090048513c2880788b40cdd67e278d56a85545d 100644
+--- a/index.js
++++ b/index.js
+@@ -113,5 +113,10 @@ SvgBuilder.prototype.style = function line(attrs, content) {
+     return this;
+ };
+ 
++SvgBuilder.prototype.image = function line(attrs, content) {
++    this.addElement(new elements.Image(attrs, content));
++    return this;
++};
++
+ module.exports = new SvgBuilder();
+ 
