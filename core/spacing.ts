@@ -66,7 +66,7 @@ function getShortestEntityDurationWithinSlice(unit: SlicedUnit): Fraction {
 
 function getSliceStiffness(
   unit: SlicedUnit,
-  minSliceDuration: Fraction
+  shortestSliceDuration: Fraction
 ): number {
   const smallestDurationWithinSlice =
     getShortestEntityDurationWithinSlice(unit);
@@ -77,7 +77,7 @@ function getSliceStiffness(
   const inputs: GourlayFInputs = {
     ...gourlayFDefaults,
     shortestEntityDurationWithinSlice: smallestDurationWithinSlice,
-    shortestSliceDuration: minSliceDuration,
+    shortestSliceDuration,
   };
   return gourlayF(inputs);
 }
@@ -110,16 +110,17 @@ function computeSystemForce(springs: Spring[], targetLength: number): number {
   const totalDeformation = targetLength - totaloriginalLen; // 正数表示拉伸，负数表示压缩
   const totalStiffness =
     1 / springs.reduce((sum, swr) => sum + 1 / swr.stiffness, 0);
-  return totalDeformation / totalStiffness;
+  return totalDeformation * totalStiffness;
 }
 
 export function computeSliceWidths(
   slices: SlicedUnit[],
+  /** 每行的盒子 */
   boxes: BoundingBox[][],
   targetWidth: number
 ): SlicedUnitWithWidth[] {
-  const minSliceDuration = slices.reduce(
-    (min, unit) => (min.lt(unit.duration) ? min : unit.duration),
+  const shortestSliceDuration = slices.reduce(
+    (min, unit) => (min.lt(unit.duration) || unit.duration.lte(0) ? min : unit.duration),
     new Fraction(MAGICMAX)
   );
   const restLengths = (zip(...boxes) as BoundingBox[][]).map((boxesOfSlice) =>
@@ -127,7 +128,7 @@ export function computeSliceWidths(
   );
   const springs: Spring[] = slices.map((unit, index) => ({
     restLength: restLengths[index],
-    stiffness: getSliceStiffness(unit, minSliceDuration),
+    stiffness: getSliceStiffness(unit, shortestSliceDuration),
   }));
   const totalForce = computeSystemForce(springs, targetWidth);
 

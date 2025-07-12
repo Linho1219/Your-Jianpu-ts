@@ -61,7 +61,7 @@ export function renderSVG(
           height: config.accidentalHeight,
         });
         break;
-      case 'text': {
+      case 'text':
         svg = svg.text(
           {
             x,
@@ -71,7 +71,7 @@ export function renderSVG(
           },
           object.content
         );
-      }
+        break;
       case 'invisible-rectangle':
         break;
       default:
