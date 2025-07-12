@@ -5,7 +5,7 @@ import { zip } from 'lodash-es';
 
 const gourlayFDefaults = {
   minDurationWidth: 1,
-  magic: 0.5,
+  magic: 1,
 } as GourlayFDefaults;
 
 const MAGICMAX = new Fraction(128);
@@ -25,6 +25,9 @@ interface GourlayFInputs extends GourlayFDefaults {
 
   /** 一个行中最短 Slice 的时值 */
   shortestSliceDuration: Fraction;
+
+  /** 当前 Slice 的时值 */
+  sliceDuration: Fraction;
 }
 
 /** 弹簧模型，F=k·Δx */
@@ -78,6 +81,7 @@ function getSliceStiffness(
     ...gourlayFDefaults,
     shortestEntityDurationWithinSlice: smallestDurationWithinSlice,
     shortestSliceDuration,
+    sliceDuration,
   };
   return gourlayF(inputs);
 }
@@ -89,11 +93,13 @@ function gourlayF(inputs: GourlayFInputs): number {
     magic,
     shortestEntityDurationWithinSlice,
     shortestSliceDuration,
+    sliceDuration,
   } = inputs;
-  const durationRatio = shortestEntityDurationWithinSlice
+  const ratio1 = shortestEntityDurationWithinSlice
     .div(shortestSliceDuration)
     .valueOf();
-  return 1 / (minDurationWidth * (1 + magic * Math.log2(durationRatio)));
+  const ratio2 = shortestEntityDurationWithinSlice.div(sliceDuration).valueOf();
+  return ratio2 / (minDurationWidth * (1 + magic * Math.log2(ratio1)));
 }
 
 //#endregion
@@ -123,17 +129,37 @@ export function computeSliceWidths(
       min.lt(unit.duration) || unit.duration.lte(0) ? min : unit.duration,
     new Fraction(MAGICMAX)
   );
-  const restLengths = boxesBySlice.map((boxesOfSlice) =>
-    Math.max(...boxesOfSlice.map(getBoxWidth))
+  const negXs = boxesBySlice.map((boxesOfSlice) => {
+    return Math.max(
+      ...boxesOfSlice.map((box) => {
+        if (!box) return 0;
+        const [[x1, _y1], [_x2, _y2]] = box;
+        return x1 < 0 ? -x1 : 0;
+      })
+    );
+  });
+  const posXs = boxesBySlice.map((boxesOfSlice) =>
+    Math.max(
+      ...boxesOfSlice.map((box) => {
+        if (!box) return 0;
+        const [[_x1, _y1], [_x2, _y2]] = box;
+        return _x2 > 0 ? _x2 : 0;
+      })
+    )
   );
+  const restLengths = posXs.map((posX, index) => {
+    const nextNegX = negXs[index + 1] ?? negXs[0];
+    return posX + nextNegX;
+  });
   console.log(restLengths);
   const springs: Spring[] = slices.map((unit, index) => ({
     restLength: restLengths[index],
     stiffness: getSliceStiffness(unit, shortestSliceDuration),
   }));
+
   const totalForce = computeSystemForce(springs, targetWidth);
 
-  let offsetX = 0;
+  let [offsetX] = negXs;
   return slices.map((unit, index) => {
     const { stiffness, restLength } = springs[index];
     const width = noNeg(restLength + totalForce / stiffness);
