@@ -1,0 +1,1 @@
+import * as opentype from 'opentype.js'
