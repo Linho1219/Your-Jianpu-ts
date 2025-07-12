@@ -12,18 +12,18 @@ export type RenderObject =
   | { type: 'invisible-rectangle'; width: number; height: number };
 
 export enum Glyph {
-  GX = 'GX',
-  G0 = 'G0',
-  G1 = 'G1',
-  G2 = 'G2',
-  G3 = 'G3',
-  G4 = 'G4',
-  G5 = 'G5',
-  G6 = 'G6',
-  G7 = 'G7',
+  GX = 'GlyphX',
+  G0 = 'Glyph0',
+  G1 = 'Glyph1',
+  G2 = 'Glyph2',
+  G3 = 'Glyph3',
+  G4 = 'Glyph4',
+  G5 = 'Glyph5',
+  G6 = 'Glyph6',
+  G7 = 'Glyph7',
 }
 
-export const whiteKeyToGlyph = (key: WhiteKey) => ('G' + key) as Glyph;
+export const whiteKeyToGlyph = (key: WhiteKey) => ('Glyph' + key) as Glyph;
 
 export type XY = [number, number];
 export type Size = [number, number];

@@ -75,11 +75,11 @@ export enum WhiteKey {
 
 /** 升降号 */
 export enum Accidental {
-  Natural = '=',
-  Sharp = '#',
-  Flat = 'b',
-  DoubleSharp = 'x',
-  DoubleFlat = 'bb',
+  Natural = 'AccidentalNatural',
+  Sharp = 'AccidentalSharp',
+  Flat = 'AccidentalFlat',
+  DoubleSharp = 'AccidentalDoubleSharp',
+  DoubleFlat = 'AccidentalDoubleFlat',
 }
 
 /** 倚音 */
