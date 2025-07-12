@@ -115,17 +115,18 @@ function computeSystemForce(springs: Spring[], targetLength: number): number {
 
 export function computeSliceWidths(
   slices: SlicedUnit[],
-  /** 每行的盒子 */
-  boxes: BoundingBox[][],
+  boxesBySlice: BoundingBox[][],
   targetWidth: number
 ): SlicedUnitWithWidth[] {
   const shortestSliceDuration = slices.reduce(
-    (min, unit) => (min.lt(unit.duration) || unit.duration.lte(0) ? min : unit.duration),
+    (min, unit) =>
+      min.lt(unit.duration) || unit.duration.lte(0) ? min : unit.duration,
     new Fraction(MAGICMAX)
   );
-  const restLengths = (zip(...boxes) as BoundingBox[][]).map((boxesOfSlice) =>
-    boxesOfSlice.reduce((min, box) => Math.min(min, getBoxWidth(box)), Infinity)
+  const restLengths = boxesBySlice.map((boxesOfSlice) =>
+    Math.max(...boxesOfSlice.map(getBoxWidth))
   );
+  console.log(restLengths);
   const springs: Spring[] = slices.map((unit, index) => ({
     restLength: restLengths[index],
     stiffness: getSliceStiffness(unit, shortestSliceDuration),

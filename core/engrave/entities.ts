@@ -112,7 +112,7 @@ function drawSound(
       children: [
         {
           type: 'Leaf',
-          anchor: AnchorPosition.Centre,
+          anchor: AnchorPosition.Left,
           object: { type: 'circle', radius: dotRadius },
         },
       ],
@@ -136,8 +136,7 @@ function drawSound(
 
   function getTransposeDots(
     count: number,
-    direction: 'up' | 'down',
-    beamShift = 0
+    direction: 'up' | 'down'
   ): LayoutTree<RenderObject> {
     const dots: LayoutTree<RenderObject>[] = Array.from(
       { length: count },
@@ -146,9 +145,7 @@ function drawSound(
         transform:
           direction === 'up'
             ? moveUp(i * (transposeDotGap + 2 * transposeDotRadius))
-            : moveDown(
-                beamShift + i * (transposeDotGap + 2 * transposeDotRadius)
-              ),
+            : moveDown(i * (transposeDotGap + 2 * transposeDotRadius)),
         children: [
           {
             type: 'Leaf',
@@ -193,15 +190,11 @@ function drawSound(
           const children = [getGlyph(whiteKeyToGlyph(pitch.whiteKey))];
           if (pitch.accidental) children.push(getAccidental(pitch.accidental));
           if (pitch.octaveTranspose > 0) {
-            children.unshift(getTransposeDots(pitch.octaveTranspose, 'up'));
+            children.push(getTransposeDots(pitch.octaveTranspose, 'up'));
           }
           if (pitch.octaveTranspose < 0) {
-            /** 仅最下面的音符需要避开减时线 */
-            const beamShift = !index
-              ? (beamGap + beamHeight) * action.timeMultiplier
-              : 0;
             children.push(
-              getTransposeDots(-pitch.octaveTranspose, 'down', beamShift)
+              getTransposeDots(-pitch.octaveTranspose, 'down')
             );
           }
           return {

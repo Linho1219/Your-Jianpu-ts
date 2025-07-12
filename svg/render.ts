@@ -21,11 +21,15 @@ export function renderSVG(
     const [posX, posY] = transform.localPosition;
     const [scaleX, scaleY] = transform.localScale;
     const [objWidth, objHeight] = getSize(object, config);
-    const x = posX + objWidth * scaleX * anchorX;
-    const y = posY + objHeight * scaleY * anchorY;
+    const x = posX - objWidth * scaleX * anchorX;
+    const y = posY - objHeight * scaleY * anchorY;
     switch (object.type) {
       case 'circle':
-        svg = svg.circle({ cx: x, cy: y, r: object.radius });
+        svg = svg.circle({
+          cx: x + object.radius,
+          cy: y + object.radius,
+          r: object.radius,
+        });
         break;
       case 'rectangle':
         svg = svg.rect({

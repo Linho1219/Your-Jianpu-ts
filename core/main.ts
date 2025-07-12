@@ -5,6 +5,7 @@ import { engraveSliceElementWithCfg } from './engrave/entities';
 import { getBoundingBox, getBoundingBoxWithCfg } from './bounding';
 import { computeSliceWidths } from './spacing';
 import {
+  BoundingBox,
   LayoutTree,
   moveDown,
   moveRight,
@@ -33,8 +34,9 @@ export function engraveMusic(
   const boxesByLine = engravedElementsByLine.map((line) =>
     line.map(getBoundingBoxWithCfg(config))
   );
+  const boxesBySlice = zip(...boxesByLine) as (BoundingBox)[][];
 
-  const slicesWithWidths = computeSliceWidths(slices, boxesByLine, lineWidth);
+  const slicesWithWidths = computeSliceWidths(slices, boxesBySlice, lineWidth);
   const slicesOffsetX = slicesWithWidths.map((slice) => slice.offsetX);
 
   const engravedVoices: LayoutTree<RenderObject>[] = elementsByLine.map(

@@ -34,8 +34,8 @@ export function engraveBeams(
 
   const beamRects: LayoutTree<RenderObject>[] = beams.map(
     ({ interval, level }) => {
-      const startX = filteredOffset[interval.start];
-      const endX = filteredOffset[interval.end] + glyphWidth;
+      const startX = filteredOffset[interval.start] - glyphWidth * 0.55;
+      const endX = filteredOffset[interval.end] + glyphWidth * 0.55;
       const width = endX - startX;
       const offsetY = beamGap + level * (beamGap + beamHeight);
       return {
