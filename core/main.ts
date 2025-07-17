@@ -106,7 +106,7 @@ function layoutVoicesVertically(
       [0, 0],
       [0, 0],
     ];
-    offsets.push(currentOffset + y1 < 0 ? -y1 : 0);
+    offsets.push(currentOffset + (y1 < 0 ? -y1 : 0));
     const height = y2 - y1;
     currentOffset += height + config.lineGap;
   }
