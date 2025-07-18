@@ -6,6 +6,7 @@ import { renderConfig } from './core/config';
 import { flattenLayoutTree } from './core/flatten';
 import fs from 'node:fs';
 import { renderSVG } from './svg/render';
+import { getBoundingBox } from './core/bounding';
 
 const testMusic: Music = {
   voices: [
@@ -76,11 +77,12 @@ const testMusic: Music = {
 };
 
 const engraved = engraveMusic(testMusic, renderConfig);
+const totalHeight = getBoundingBox(engraved, renderConfig)?.[1][1] ?? 0;
 const flattened = flattenLayoutTree(engraved);
 const svgStr = renderSVG(
   flattened,
   renderConfig.lineWidth,
-  renderConfig.pageHeight,
+  totalHeight,
   renderConfig
 );
 fs.writeFileSync('output.svg', svgStr, 'utf-8');
