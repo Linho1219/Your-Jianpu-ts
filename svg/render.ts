@@ -13,7 +13,6 @@ export function renderSVG(
   height: number,
   config: RenderConfig
 ): string {
-  // let svg = svgBuilder.width(width).height(height);
   const children: INode[] = [];
   const rootNode: INode = {
     name: 'svg',
@@ -26,6 +25,15 @@ export function renderSVG(
     value: '',
     children,
   };
+  children.push(
+    getINode('rect', {
+      x: '0',
+      y: '0',
+      width: width.toString(),
+      height: height.toString(),
+      fill: '#fff',
+    })
+  );
 
   for (const [transform, anchor, object] of flatLayout) {
     const [anchorX, anchorY] = normAnchorPosition(anchor);
@@ -95,6 +103,7 @@ export function renderSVG(
               y: y.toString(),
               'font-size': config.glyphHeight.toString(),
               'font-family': 'sans-serif',
+              'text-anchor': 'middle',
             },
             [getINodeText(object.content)]
           )
@@ -107,7 +116,7 @@ export function renderSVG(
     }
   }
 
-  return stringify(rootNode);
+  return getCommentStr(`由 Your-Jianpu-TS 生成`) + stringify(rootNode);
 }
 
 export function generateQuadraticBezierPath(
@@ -151,3 +160,5 @@ function getINodeText(
     children: [],
   };
 }
+
+const getCommentStr = (content: string) => `<!-- ${content} -->`;
