@@ -32,6 +32,8 @@ export interface RawRenderConfig {
   slurHeight_glyphHeight: number;
   slurPaddingX_glyphWidth: number;
   slurPaddingBottom_glyphHeight: number;
+  lyricSize_glyphHeight: number;
+  lyricGap_lineGap: number;
   initialTimeSignature: TimeSignature;
 }
 
@@ -58,13 +60,16 @@ export interface RenderConfig extends RawRenderConfig {
   slurHeight: number;
   slurPaddingX: number;
   slurPaddingBottom: number;
+  lyricSize: number;
+  lyricGap: number;
 }
 
 export function fromRawRenderConfig(raw: RawRenderConfig): RenderConfig {
   const glyphHeight = raw.glyphHeight_lineWidth * raw.lineWidth,
     glyphWidth = raw.glyphWidth_glyphHeight * glyphHeight,
     accidentalHeight = raw.accidentalHeight_glyphHeight * glyphHeight,
-    barLineWidth = raw.barLineWidth_glyphWidth * glyphWidth;
+    barLineWidth = raw.barLineWidth_glyphWidth * glyphWidth,
+    lineGap = raw.lineGap;
 
   return {
     ...raw,
@@ -89,5 +94,7 @@ export function fromRawRenderConfig(raw: RawRenderConfig): RenderConfig {
     slurHeight: raw.slurHeight_glyphHeight * glyphHeight,
     slurPaddingX: raw.slurPaddingX_glyphWidth * glyphWidth,
     slurPaddingBottom: raw.slurPaddingBottom_glyphHeight * glyphHeight,
+    lyricSize: raw.lyricSize_glyphHeight * glyphHeight,
+    lyricGap: raw.lyricGap_lineGap * lineGap,
   };
 }

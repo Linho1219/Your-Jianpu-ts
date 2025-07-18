@@ -34,7 +34,7 @@ export function engraveMusic(
   const boxesByLine = engravedElementsByLine.map((line) =>
     line.map(getBoundingBoxWithCfg(config))
   );
-  const boxesBySlice = zip(...boxesByLine) as (BoundingBox)[][];
+  const boxesBySlice = zip(...boxesByLine) as BoundingBox[][];
 
   const slicesWithWidths = computeSliceWidths(slices, boxesBySlice, lineWidth);
   const slicesOffsetX = slicesWithWidths.map((slice) => slice.offsetX);
@@ -63,7 +63,7 @@ export function engraveMusic(
     }
   );
 
-  const offsetsY = layoutVoicesVertically(engravedVoices, config);
+  const offsetsY = layoutVoicesVertically(engravedVoices, music.voices, config);
   return {
     type: 'Node',
     transform: notrans(),
@@ -94,21 +94,27 @@ function engraveBaseNotes(
 }
 
 function layoutVoicesVertically(
-  voices: LayoutTree<RenderObject>[],
+  voiceTrees: LayoutTree<RenderObject>[],
+  voices: Music['voices'] = [],
   config: RenderConfig
 ): number[] {
   const offsets: number[] = [];
   let currentOffset = 0;
 
-  for (const voice of voices) {
-    const bbox = getBoundingBox(voice, config);
+  voiceTrees.forEach((voiceTree, index) => {
+    if (index) {
+      const type = voices[index].type;
+      if (type === 'music') currentOffset += config.lineGap;
+      else currentOffset += config.lyricGap;
+    }
+    const bbox = getBoundingBox(voiceTree, config);
     const [[_x1, y1], [_x2, y2]] = bbox ?? [
       [0, 0],
       [0, 0],
     ];
     offsets.push(currentOffset + (y1 < 0 ? -y1 : 0));
     const height = y2 - y1;
-    currentOffset += height + config.lineGap;
-  }
+    currentOffset += height;
+  });
   return offsets;
 }

@@ -102,6 +102,7 @@ export type Spans = IntervalMap<Span>;
 
 /** 声部 */
 export interface Voice {
+  type: 'music' | 'lyric';
   /** 顺序排列的符号实体 */
   entities: AbstractEntity[];
   /** 跨越多个音符的装饰结构 */

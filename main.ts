@@ -1,5 +1,5 @@
 import Fraction from 'fraction.js';
-import { IntervalMap, Music } from './types/abstract';
+import { IntervalMap, Music, Tag } from './types/abstract';
 import { Accidental, WhiteKey } from './types/basic';
 import { engraveMusic } from './core/main';
 import { renderConfig } from './core/config';
@@ -11,6 +11,7 @@ import { getBoundingBox } from './core/bounding';
 const testMusic: Music = {
   voices: [
     {
+      type: 'music',
       entities: [
         {
           type: 'Event',
@@ -42,7 +43,7 @@ const testMusic: Music = {
               dot: 0,
               sound: {
                 type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K2, octaveTranspose: 0 }],
+                pitches: [{ whiteKey: WhiteKey.K2, octaveTranspose: 2 }],
               },
             },
           },
@@ -63,6 +64,10 @@ const testMusic: Music = {
           },
           duration: new Fraction(1, 8),
         },
+        {
+          type: 'Tag',
+          tag: Tag.EndSign,
+        },
       ],
       spans: IntervalMap.fromRecords([
         [
@@ -72,6 +77,43 @@ const testMusic: Music = {
           },
         ],
       ]),
+    },
+    {
+      type: 'lyric',
+      entities: [
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '你',
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '好',
+            },
+          },
+          duration: new Fraction(1, 8),
+        },
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '吗',
+              suffix: '?',
+            },
+          },
+          duration: new Fraction(1, 8),
+        },
+      ],
+      spans: new IntervalMap(),
     },
   ],
 };
