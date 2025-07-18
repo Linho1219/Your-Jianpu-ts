@@ -114,7 +114,7 @@ export function renderSVG(
               'font-size': config.lyricSize.toString(),
               'font-family': 'sans-serif',
               'text-anchor': 'middle',
-              'dominant-baseline': 'top',
+              'alignment-baseline': 'text-after-edge',
             },
             [getINodeText(object.content)]
           )

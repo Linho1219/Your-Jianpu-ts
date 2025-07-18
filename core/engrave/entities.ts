@@ -38,7 +38,7 @@ function drawEvent(
   event: Event,
   config: RenderConfig
 ): LayoutTree<RenderObject> {
-  const { glyphHeight, repeater4Width, repeater4Height } = config;
+  const { glyphHeight, repeater4Width, repeater4Height, lyricSize } = config;
   switch (event.type) {
     case 'Action':
       return drawSound(event.value, config);
@@ -71,7 +71,7 @@ function drawEvent(
         anchor: AnchorPosition.Bottom,
         object: {
           type: 'text',
-          size: glyphHeight,
+          size: lyricSize,
           align: 'center',
           content: event.syllable?.content || '',
         },
@@ -193,9 +193,7 @@ function drawSound(
             children.push(getTransposeDots(pitch.octaveTranspose, 'up'));
           }
           if (pitch.octaveTranspose < 0) {
-            children.push(
-              getTransposeDots(-pitch.octaveTranspose, 'down')
-            );
+            children.push(getTransposeDots(-pitch.octaveTranspose, 'down'));
           }
           return {
             type: 'Node',

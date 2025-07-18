@@ -62,8 +62,13 @@ export interface APArbitrary {
 export type Anchor = AnchorPosition | APArbitrary;
 
 export type LayoutTree<T> =
-  | { type: 'Leaf'; anchor: Anchor; object: T }
-  | { type: 'Node'; transform: Transform; children: LayoutTree<T>[] };
+  | { type: 'Leaf'; anchor: Anchor; object: T; remarks?: string }
+  | {
+      type: 'Node';
+      transform: Transform;
+      children: LayoutTree<T>[];
+      remarks?: string;
+    };
 
 export interface LayoutFlat<T> extends Array<DrawDirective<T>> {}
 

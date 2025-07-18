@@ -59,11 +59,12 @@ export function engraveMusic(
         type: 'Node',
         transform: notrans(),
         children: [engravedEntities, engravedBeams, engravedSpans],
+        remarks: music.voices[voiceIndex].type,
       };
     }
   );
 
-  const offsetsY = layoutVoicesVertically(engravedVoices, music.voices, config);
+  const offsetsY = layoutVoicesVertically(engravedVoices, config);
   return {
     type: 'Node',
     transform: notrans(),
@@ -95,7 +96,6 @@ function engraveBaseNotes(
 
 function layoutVoicesVertically(
   voiceTrees: LayoutTree<RenderObject>[],
-  voices: Music['voices'] = [],
   config: RenderConfig
 ): number[] {
   const offsets: number[] = [];
@@ -103,9 +103,8 @@ function layoutVoicesVertically(
 
   voiceTrees.forEach((voiceTree, index) => {
     if (index) {
-      const type = voices[index].type;
-      if (type === 'music') currentOffset += config.lineGap;
-      else currentOffset += config.lyricGap;
+      if (voiceTree.remarks === 'lyric') currentOffset += config.lyricGap;
+      else currentOffset += config.lineGap;
     }
     const bbox = getBoundingBox(voiceTree, config);
     const [[_x1, y1], [_x2, y2]] = bbox ?? [
