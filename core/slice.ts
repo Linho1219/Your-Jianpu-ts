@@ -80,7 +80,7 @@ function sliceVoices(entitiesOfVoices: AbstractEntity[][]): {
         return new Fraction(0);
       })
       .filter((d): d is Fraction => !!d)
-      .reduce((a, b) => (a.lt(b) ? a : b));
+      .reduce((a, b) => a.gcd(b));
 
     voiceRelates.forEach((voiceRelate) => {
       const { head } = voiceRelate;
