@@ -6,6 +6,13 @@ import {
 } from '../types/layout';
 import { RenderConfig } from '../types/config';
 import { getSize } from '../core/bounding';
+import {
+  generateQuadraticBezierPath,
+  getCommentStr,
+  getINode,
+  getINodeText,
+} from './utils';
+import { getDefRegister, initAssets } from './defReg';
 
 export function renderSVG(
   flatLayout: DrawDirective<RenderObject>[],
@@ -13,6 +20,7 @@ export function renderSVG(
   height: number,
   config: RenderConfig
 ): string {
+  const defReg = getDefRegister(initAssets('./svg/assets'));
   const children: INode[] = [];
   const rootNode: INode = {
     name: 'svg',
@@ -73,9 +81,10 @@ export function renderSVG(
         );
         break;
       case 'glyph':
+        defReg.reg(object.value);
         children.push(
-          getINode('image', {
-            href: `svg/${object.value}.svg`,
+          getINode('use', {
+            href: `#${object.value}`,
             x: x.toString(),
             y: y.toString(),
             width: config.glyphWidth.toString(),
@@ -84,9 +93,10 @@ export function renderSVG(
         );
         break;
       case 'accidental':
+        defReg.reg(object.value);
         children.push(
-          getINode('image', {
-            href: `svg/${object.value}.svg`,
+          getINode('use', {
+            href: `#${object.value}`,
             x: x.toString(),
             y: y.toString(),
             width: config.accidentalWidth.toString(),
@@ -100,10 +110,11 @@ export function renderSVG(
             'text',
             {
               x: x.toString(),
-              y: y.toString(),
-              'font-size': config.glyphHeight.toString(),
+              y: (y + config.lyricSize).toString(),
+              'font-size': config.lyricSize.toString(),
               'font-family': 'sans-serif',
               'text-anchor': 'middle',
+              'dominant-baseline': 'top',
             },
             [getINodeText(object.content)]
           )
@@ -115,50 +126,6 @@ export function renderSVG(
         throw new Error(`Unknown render object type`);
     }
   }
-
+  children.unshift(defReg.exp());
   return getCommentStr(`由 Your-Jianpu-TS 生成`) + stringify(rootNode);
 }
-
-export function generateQuadraticBezierPath(
-  x: number,
-  y: number,
-  width: number,
-  height: number
-): string {
-  const x1 = x;
-  const y1 = y + height;
-  const cx = x + width / 2;
-  const cy = y - height;
-  const x2 = x + width;
-  const y2 = y + height;
-  return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
-}
-
-function getINode(
-  tagName: string,
-  attr: Record<string, string>,
-  children: INode[] = []
-): INode {
-  return {
-    name: tagName,
-    type: 'element',
-    attributes: attr,
-    value: '',
-    children,
-  };
-}
-
-function getINodeText(
-  content: string,
-  attr: Record<string, string> = {}
-): INode {
-  return {
-    name: '',
-    type: 'text',
-    value: content,
-    attributes: attr,
-    children: [],
-  };
-}
-
-const getCommentStr = (content: string) => `<!-- ${content} -->`;
