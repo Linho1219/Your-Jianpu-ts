@@ -20,7 +20,7 @@ export function renderSVG(
   height: number,
   config: RenderConfig
 ): string {
-  const defReg = getDefRegister(initAssets('./svg/assets'));
+  const defReg = getDefRegister(initAssets('./svg/assets/gwoodryin'));
   const children: INode[] = [];
   const rootNode: INode = {
     name: 'svg',

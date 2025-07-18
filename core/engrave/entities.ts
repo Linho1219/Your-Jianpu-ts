@@ -105,7 +105,7 @@ function drawSound(
 
   const getAsideDots = (count: number): LayoutTree<RenderObject> => ({
     type: 'Node',
-    transform: move(glyphWidth / 2 + dotGap, -glyphHeight / 2),
+    transform: move(glyphWidth / 2 + dotGap, -dotRadius),
     children: Array.from({ length: count }, (_, i) => ({
       type: 'Node',
       transform: moveRight(i * (dotGap + 2 * dotRadius)),

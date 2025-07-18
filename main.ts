@@ -19,7 +19,7 @@ const testMusic: Music = {
             type: 'Action',
             value: {
               timeMultiplier: 0,
-              dot: 0,
+              dot: 1,
               sound: {
                 type: 'Note',
                 pitches: [
