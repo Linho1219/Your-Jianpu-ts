@@ -4,11 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-patchedDependencies:
-  svg-builder:
-    hash: 5e8a0cc510c36262faf2527bcc445029c50bbb6a8f860a395bfd86bc40fa9919
-    path: patches/svg-builder.patch
-
 importers:
 
   .:
