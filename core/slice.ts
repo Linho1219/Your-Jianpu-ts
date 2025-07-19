@@ -63,13 +63,31 @@ function sliceVoices(entitiesOfVoices: AbstractEntity[][]): {
   const slicedUnits: SlicedUnit[] = [];
 
   while (true) {
-    voiceRelates.forEach((voiceRelate) => {
+    function refreshVoiceRelate(voiceRelate: (typeof voiceRelates)[number]) {
       const { ongoing, pendings } = voiceRelate;
       voiceRelate.head = ongoing || pendings.shift() || null;
       // 如果 ongoing 存在，说明它是上一个 slice 的剩余部分（PartialEntity）
-      // 否则一定会把 pendings 中的第一个元素取出来
+      // 否则把 pendings 中的第一个元素取出
       voiceRelate.sliced = null;
-    });
+    }
+    voiceRelates.forEach(refreshVoiceRelate);
+
+    // 含 Tag 特判：无时长，单独切出 slice
+    while (voiceRelates.some(({ head }) => head && head.type === 'Tag')) {
+      slicedUnits.push({
+        duration: new Fraction(0),
+        entities: voiceRelates.map((voiceRelate) => {
+          const { head } = voiceRelate;
+          if (head && head.type === 'Tag') {
+            refreshVoiceRelate(voiceRelate);
+            return head;
+          }
+          return null;
+        }),
+      });
+    }
+    // 当前 head 只能是 Event, PartialEvent 或 null
+
     if (voiceRelates.every(({ head }) => head === null)) break;
 
     const sliceDurationUnit = voiceRelates
@@ -77,7 +95,7 @@ function sliceVoices(entitiesOfVoices: AbstractEntity[][]): {
         if (!head) return null;
         if (head.type === 'PartialEvent') return head.remaining;
         if (head.type === 'Event') return head.duration;
-        return new Fraction(0);
+        return null;
       })
       .filter((d): d is Fraction => !!d)
       .reduce((a, b) => a.gcd(b));
@@ -94,11 +112,6 @@ function sliceVoices(entitiesOfVoices: AbstractEntity[][]): {
             remaining,
           };
         } else voiceRelate.ongoing = null;
-        voiceRelate.sliced = head;
-        return;
-      }
-      if (head.type === 'Tag') {
-        // 只要出现 Tag，sliceDurationUnit 必为零，无需判断了
         voiceRelate.sliced = head;
         return;
       }
@@ -172,6 +185,8 @@ export function sliceMusic(music: Music) {
   //   });
   //   return newSpans;
   // });
+
+  console.log(slicedUnits);
 
   return {
     slices: slicedUnits,
