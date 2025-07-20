@@ -151,7 +151,7 @@ export function computeSliceWidths(
     const nextNegX = negXs[index + 1] ?? negXs[0];
     return posX + nextNegX;
   });
-  console.log(restLengths);
+  // console.log(restLengths);
   const springs: Spring[] = slices.map((unit, index) => ({
     restLength: restLengths[index],
     stiffness: getSliceStiffness(unit, shortestSliceDuration),

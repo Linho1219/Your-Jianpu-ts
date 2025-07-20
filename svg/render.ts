@@ -12,7 +12,7 @@ import {
   getINode,
   getINodeText,
 } from './utils';
-import { getDefRegister, initAssets } from './defReg';
+import { getDefRegister } from './defReg';
 
 export function renderSVG(
   flatLayout: DrawDirective<RenderObject>[],
@@ -20,7 +20,7 @@ export function renderSVG(
   height: number,
   config: RenderConfig
 ): string {
-  const defReg = getDefRegister(initAssets('./svg/assets/gwoodryin'));
+  const defReg = getDefRegister('LathaBold.ttf', 'Leland.otf');
   const children: INode[] = [];
   const rootNode: INode = {
     name: 'svg',

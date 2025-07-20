@@ -1,0 +1,38 @@
+{
+  "Glyph0": {
+    "codepoint": "U+0030",
+    "description": "Digit Zero"
+  },
+  "Glyph1": {
+    "codepoint": "U+0031",
+    "description": "Digit One"
+  },
+  "Glyph2": {
+    "codepoint": "U+0032",
+    "description": "Digit Two"
+  },
+  "Glyph3": {
+    "codepoint": "U+0033",
+    "description": "Digit Three"
+  },
+  "Glyph4": {
+    "codepoint": "U+0034",
+    "description": "Digit Four"
+  },
+  "Glyph5": {
+    "codepoint": "U+0035",
+    "description": "Digit Five"
+  },
+  "Glyph6": {
+    "codepoint": "U+0036",
+    "description": "Digit Six"
+  },
+  "Glyph7": {
+    "codepoint": "U+0037",
+    "description": "Digit Seven"
+  },
+  "GlyphX": {
+    "codepoint": "U+0058",
+    "description": "Letter X"
+  }
+}

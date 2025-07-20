@@ -13,6 +13,241 @@ const testMusic: Music = {
     {
       type: 'music',
       entities: [
+        // 1
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 0,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 0 }],
+              },
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // 1
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 0,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 0 }],
+              },
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // 5
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 0,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K5, octaveTranspose: 0 }],
+              },
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // 5
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 0,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K5, octaveTranspose: 0 }],
+              },
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // |
+        { type: 'Tag', tag: Tag.BarLine },
+        // 6..//
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 2,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K6, octaveTranspose: -2 }],
+              },
+            },
+          },
+          duration: new Fraction(1, 16),
+        },
+        // 6./
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 1,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K6, octaveTranspose: -1 }],
+              },
+            },
+          },
+          duration: new Fraction(1, 8),
+        },
+        // 6''//
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 2,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K6, octaveTranspose: 2 }],
+              },
+            },
+          },
+          duration: new Fraction(1, 16),
+        },
+        // 5
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 0,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K5, octaveTranspose: 0 }],
+              },
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // -
+        {
+          type: 'Event',
+          event: {
+            type: 'Repeater4',
+          },
+          duration: new Fraction(1, 4),
+        },
+        // |
+        { type: 'Tag', tag: Tag.BarLine },
+        // 4/
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 1,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K4, octaveTranspose: 0 }],
+              },
+            },
+          },
+          duration: new Fraction(1, 8),
+        },
+        // 4./
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 1,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K4, octaveTranspose: -1 }],
+              },
+            },
+          },
+          duration: new Fraction(1, 8),
+        },
+        // 1'
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 0,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 1 }],
+              },
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // #3
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 0,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [
+                  {
+                    whiteKey: WhiteKey.K3,
+                    octaveTranspose: 0,
+                    accidental: Accidental.Sharp,
+                  },
+                ],
+              },
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // =3
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 0,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [
+                  {
+                    whiteKey: WhiteKey.K3,
+                    octaveTranspose: 0,
+                    accidental: Accidental.Natural,
+                  },
+                ],
+              },
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // |
+        { type: 'Tag', tag: Tag.BarLine },
+        // 2*
         {
           type: 'Event',
           event: {
@@ -23,17 +258,16 @@ const testMusic: Music = {
               sound: {
                 type: 'Note',
                 pitches: [
-                  {
-                    whiteKey: WhiteKey.K1,
-                    octaveTranspose: -1,
-                    accidental: Accidental.Sharp,
-                  },
+                  { whiteKey: WhiteKey.K2, octaveTranspose: 1 },
+                  { whiteKey: WhiteKey.K4, octaveTranspose: 1 },
+                  { whiteKey: WhiteKey.K6, octaveTranspose: 0 },
                 ],
               },
             },
           },
           duration: new Fraction(1, 4),
         },
+        // 2/
         {
           type: 'Event',
           event: {
@@ -43,35 +277,66 @@ const testMusic: Music = {
               dot: 0,
               sound: {
                 type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K2, octaveTranspose: 2 }],
+                pitches: [{ whiteKey: WhiteKey.K2, octaveTranspose: 0 }],
               },
             },
           },
           duration: new Fraction(1, 8),
         },
+        // 1
         {
           type: 'Event',
           event: {
             type: 'Action',
             value: {
-              timeMultiplier: 1,
+              timeMultiplier: 0,
               dot: 0,
               sound: {
                 type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K3, octaveTranspose: 0 }],
+                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 0 }],
               },
             },
           },
-          duration: new Fraction(1, 8),
+          duration: new Fraction(1, 4),
         },
+        // -
         {
-          type: 'Tag',
-          tag: Tag.EndSign,
+          type: 'Event',
+          event: {
+            type: 'Repeater4',
+          },
+          duration: new Fraction(1, 4),
         },
+        // |||
+        { type: 'Tag', tag: Tag.EndSign },
       ],
       spans: IntervalMap.fromRecords([
         [
-          { start: 1, end: 2 },
+          { start: 4, end: 6 },
+          {
+            type: 'Beam',
+          },
+        ],
+        [
+          { start: 4, end: 4 },
+          {
+            type: 'Beam',
+          },
+        ],
+        [
+          { start: 6, end: 6 },
+          {
+            type: 'Beam',
+          },
+        ],
+        [
+          { start: 9, end: 10 },
+          {
+            type: 'Beam',
+          },
+        ],
+        [
+          { start: 15, end: 15 },
           {
             type: 'Beam',
           },
@@ -81,39 +346,197 @@ const testMusic: Music = {
     {
       type: 'lyric',
       entities: [
+        // 1
         {
           type: 'Event',
           event: {
             type: 'Pronounce',
             syllable: {
-              content: '你',
+              content: '一',
             },
           },
           duration: new Fraction(1, 4),
         },
+        // 1
         {
           type: 'Event',
           event: {
             type: 'Pronounce',
             syllable: {
-              content: '好',
+              content: '闪',
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // 5
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '一',
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // 5
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '闪',
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // 6..//
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '亮',
+            },
+          },
+          duration: new Fraction(1, 16),
+        },
+        // 6./
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '亮',
             },
           },
           duration: new Fraction(1, 8),
         },
+        // 6''//
         {
           type: 'Event',
           event: {
             type: 'Pronounce',
             syllable: {
-              content: '吗',
-              suffix: '?',
+              content: '晶',
+            },
+          },
+          duration: new Fraction(1, 16),
+        },
+        // 5
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '晶',
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // -
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+          },
+          duration: new Fraction(1, 4),
+        },
+        // 4/
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '满',
             },
           },
           duration: new Fraction(1, 8),
+        },
+        // 4./
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+          },
+          duration: new Fraction(1, 8),
+        },
+        // 1'
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '天',
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // #3
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '都',
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // =3
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '是',
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // 2*
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '小',
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // 2/
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '星',
+            },
+          },
+          duration: new Fraction(1, 8),
+        },
+        // 1
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+            syllable: {
+              content: '星',
+            },
+          },
+          duration: new Fraction(1, 4),
+        },
+        // -
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+          },
+          duration: new Fraction(1, 4),
         },
       ],
-      spans: new IntervalMap(),
+      spans: IntervalMap.fromRecords([]),
     },
   ],
 };
