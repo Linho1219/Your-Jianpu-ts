@@ -27,5 +27,7 @@ export const renderConfig = fromRawRenderConfig({
   slurPaddingBottom_glyphHeight: 1 / 8,
   lyricSize_glyphHeight: 1,
   lyricGap_lineGap: 1 / 4,
+  chordGap_glyphHeight: 1 / 3,
+  chordYscale: 2 / 3,
   initialTimeSignature: [4, 4],
 });

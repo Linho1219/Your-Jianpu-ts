@@ -48,8 +48,12 @@ export function renderSVG(
     const [posX, posY] = transform.localPosition;
     const [scaleX, scaleY] = transform.localScale;
     const [objWidth, objHeight] = getSize(object, config);
-    const x = posX - objWidth * scaleX * anchorX;
-    const y = posY - objHeight * scaleY * anchorY;
+    const x = (posX - objWidth * scaleX * anchorX) / scaleX;
+    const y = (posY - objHeight * scaleY * anchorY) / scaleY;
+    const transformAttrs: Record<string, string> = {};
+    if (scaleX !== 1 || scaleY !== 1) {
+      transformAttrs.transform = `scale(${scaleX}, ${scaleY})`;
+    }
     switch (object.type) {
       case 'circle':
         children.push(
@@ -57,6 +61,7 @@ export function renderSVG(
             cx: (x + object.radius).toString(),
             cy: (y + object.radius).toString(),
             r: object.radius.toString(),
+            ...transformAttrs,
           })
         );
         break;
@@ -67,6 +72,7 @@ export function renderSVG(
             y: y.toString(),
             width: (objWidth * scaleX).toString(),
             height: (objHeight * scaleY).toString(),
+            ...transformAttrs,
           })
         );
         break;
@@ -77,6 +83,7 @@ export function renderSVG(
             fill: 'none',
             stroke: '#000',
             'stroke-width': '2px',
+            ...transformAttrs,
           })
         );
         break;
@@ -89,6 +96,7 @@ export function renderSVG(
             y: y.toString(),
             width: config.glyphWidth.toString(),
             height: config.glyphHeight.toString(),
+            ...transformAttrs,
           })
         );
         break;
@@ -101,6 +109,7 @@ export function renderSVG(
             y: y.toString(),
             width: config.accidentalWidth.toString(),
             height: config.accidentalHeight.toString(),
+            ...transformAttrs,
           })
         );
         break;
@@ -115,6 +124,7 @@ export function renderSVG(
               'font-family': 'sans-serif',
               'text-anchor': 'middle',
               'alignment-baseline': 'text-after-edge',
+              ...transformAttrs,
             },
             [getINodeText(object.content)]
           )

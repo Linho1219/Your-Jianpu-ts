@@ -89,7 +89,12 @@ const testMusic: Music = {
               dot: 0,
               sound: {
                 type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K6, octaveTranspose: -2 }],
+                pitches: [
+                  { whiteKey: WhiteKey.K6, octaveTranspose: 1 },
+                  { whiteKey: WhiteKey.K6, octaveTranspose: 0 },
+                  { whiteKey: WhiteKey.K6, octaveTranspose: -1 },
+                  { whiteKey: WhiteKey.K1, octaveTranspose: -2 },
+                ],
               },
             },
           },
@@ -258,9 +263,9 @@ const testMusic: Music = {
               sound: {
                 type: 'Note',
                 pitches: [
-                  { whiteKey: WhiteKey.K2, octaveTranspose: 1 },
+                  { whiteKey: WhiteKey.K7, octaveTranspose: 1 },
                   { whiteKey: WhiteKey.K4, octaveTranspose: 1 },
-                  { whiteKey: WhiteKey.K6, octaveTranspose: 0 },
+                  { whiteKey: WhiteKey.K6, octaveTranspose: -1 },
                 ],
               },
             },

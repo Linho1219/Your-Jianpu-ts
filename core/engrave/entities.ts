@@ -14,6 +14,7 @@ import { Event, Action, Accidental } from '../../types/basic';
 import { Tag } from '../../types/abstract';
 import { RenderObject, AnchorPosition } from '../../types/layout';
 import { SlicedEntity } from '../slice';
+import { getBoundingBox } from '../bounding';
 
 function engraveSliceElement(
   element: SlicedEntity,
@@ -119,9 +120,12 @@ function drawSound(
     })),
   });
 
-  const getAccidental = (accidental: Accidental): LayoutTree<RenderObject> => ({
+  const getAccidental = (
+    accidental: Accidental,
+    scaleY = 1
+  ): LayoutTree<RenderObject> => ({
     type: 'Node',
-    transform: move(-glyphWidth / 2, -glyphHeight),
+    transform: move(-glyphWidth / 2, -glyphHeight * scaleY),
     children: [
       {
         type: 'Leaf',
@@ -136,7 +140,9 @@ function drawSound(
 
   function getTransposeDots(
     count: number,
-    direction: 'up' | 'down'
+    direction: 'up' | 'down',
+    scaleY = 1,
+    ignoreBeam = false
   ): LayoutTree<RenderObject> {
     const dots: LayoutTree<RenderObject>[] = Array.from(
       { length: count },
@@ -161,56 +167,80 @@ function drawSound(
       type: 'Node',
       transform:
         direction === 'up'
-          ? moveUp(glyphHeight + transposeDotGap)
+          ? moveUp(glyphHeight * scaleY + transposeDotGap)
           : moveDown(
-              (beamGap + beamHeight) * action.timeMultiplier + transposeDotGap
+              ignoreBeam
+                ? transposeDotGap
+                : (beamGap + beamHeight) * action.timeMultiplier +
+                    transposeDotGap
             ),
       children: dots,
     };
   }
 
-  switch (action.sound.type) {
-    case 'Rest':
-    case 'Clap': {
-      const glyph = action.sound.type === 'Clap' ? Glyph.GX : Glyph.G0;
-      const children = [getGlyph(glyph)];
-      if (action.dot) children.push(getAsideDots(action.dot));
-      return {
-        type: 'Node',
-        transform: notrans(),
-        children,
-      };
-    }
-    case 'Note': {
-      const rootChildren: LayoutTree<RenderObject>[] = [];
-      if (action.dot) rootChildren.push(getAsideDots(action.dot));
-      const pitchNodes: LayoutTree<RenderObject>[] = action.sound.pitches
-        .reverse()
-        .map((pitch, index) => {
-          const children = [getGlyph(whiteKeyToGlyph(pitch.whiteKey))];
-          if (pitch.accidental) children.push(getAccidental(pitch.accidental));
-          if (pitch.octaveTranspose > 0) {
-            children.push(getTransposeDots(pitch.octaveTranspose, 'up'));
-          }
-          if (pitch.octaveTranspose < 0) {
-            children.push(getTransposeDots(-pitch.octaveTranspose, 'down'));
-          }
-          return {
-            type: 'Node',
-            transform: moveUp(index * (glyphHeight + 3 * transposeDotGap)),
-            children,
-          };
-        });
-      if (pitchNodes.length === 1 && pitchNodes[0].type === 'Node')
-        rootChildren.push(...pitchNodes[0].children);
-      else rootChildren.push(...pitchNodes);
-      return {
-        type: 'Node',
-        transform: notrans(),
-        children: rootChildren,
-      };
-    }
-  }
+  if (action.sound.type === 'Rest' || action.sound.type === 'Clap') {
+    const glyph = action.sound.type === 'Clap' ? Glyph.GX : Glyph.G0;
+    const children = [getGlyph(glyph)];
+    if (action.dot) children.push(getAsideDots(action.dot));
+    return {
+      type: 'Node',
+      transform: notrans(),
+      children,
+    };
+  } else if (action.sound.type === 'Note') {
+    const isChord = action.sound.pitches.length > 1;
+    const scaleY = isChord ? config.chordYscale : 1;
+    const rootChildren: LayoutTree<RenderObject>[] = [];
+    if (action.dot) rootChildren.push(getAsideDots(action.dot));
+    let currentY = 0;
+    const pitchNodes: LayoutTree<RenderObject>[] = action.sound.pitches
+      .reverse()
+      .map((pitch, index) => {
+        const glyph = getGlyph(whiteKeyToGlyph(pitch.whiteKey));
+        const children: LayoutTree<RenderObject>[] = [
+          isChord
+            ? {
+                type: 'Node',
+                transform: {
+                  localPosition: [0, 0],
+                  localScale: [1, config.chordYscale],
+                },
+                children: [glyph],
+              }
+            : glyph,
+        ];
+        if (pitch.accidental)
+          children.push(getAccidental(pitch.accidental, scaleY));
+        if (pitch.octaveTranspose > 0) {
+          children.push(getTransposeDots(pitch.octaveTranspose, 'up', scaleY));
+        }
+        if (pitch.octaveTranspose < 0) {
+          children.push(
+            getTransposeDots(-pitch.octaveTranspose, 'down', scaleY, !!index)
+          );
+        }
+        const tree: LayoutTree<RenderObject> = {
+          type: 'Node',
+          transform: moveDown(currentY),
+          children,
+        };
+        const [[_x1, y1], [_x2, y2]] = getBoundingBox(tree, config)!;
+        const paddingBottom = y2 - currentY;
+        if (index && paddingBottom > 0) {
+          tree.transform = moveDown(currentY - paddingBottom);
+          currentY = y1 - paddingBottom - config.chordGap;
+        } else currentY = y1 - config.chordGap;
+        return tree;
+      });
+    if (pitchNodes.length === 1 && pitchNodes[0].type === 'Node')
+      rootChildren.push(...pitchNodes[0].children);
+    else rootChildren.push(...pitchNodes);
+    return {
+      type: 'Node',
+      transform: notrans(),
+      children: rootChildren,
+    };
+  } else throw new Error(`Unknown sound type`);
 }
 
 function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {

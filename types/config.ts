@@ -34,6 +34,8 @@ export interface RawRenderConfig {
   slurPaddingBottom_glyphHeight: number;
   lyricSize_glyphHeight: number;
   lyricGap_lineGap: number;
+  chordGap_glyphHeight: number;
+  chordYscale: number;
   initialTimeSignature: TimeSignature;
 }
 
@@ -62,6 +64,7 @@ export interface RenderConfig extends RawRenderConfig {
   slurPaddingBottom: number;
   lyricSize: number;
   lyricGap: number;
+  chordGap: number;
 }
 
 export function fromRawRenderConfig(raw: RawRenderConfig): RenderConfig {
@@ -96,5 +99,6 @@ export function fromRawRenderConfig(raw: RawRenderConfig): RenderConfig {
     slurPaddingBottom: raw.slurPaddingBottom_glyphHeight * glyphHeight,
     lyricSize: raw.lyricSize_glyphHeight * glyphHeight,
     lyricGap: raw.lyricGap_lineGap * lineGap,
+    chordGap: raw.chordGap_glyphHeight * glyphHeight,
   };
 }
