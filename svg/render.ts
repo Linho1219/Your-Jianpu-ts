@@ -18,8 +18,14 @@ export function renderSVG(
   flatLayout: DrawDirective<RenderObject>[],
   width: number,
   height: number,
-  config: RenderConfig
+  config: RenderConfig,
+  PRECISION = 2
 ): string {
+  const prtN = (num: number) =>
+    num
+      .toFixed(PRECISION)
+      .replace(/\.0+$/, '')
+      .replace(/(?<=\.\d+)0+$/, '');
   const defReg = getDefRegister('LathaBold.ttf', 'Leland.otf');
   const children: INode[] = [];
   const rootNode: INode = {
@@ -27,8 +33,8 @@ export function renderSVG(
     type: 'element',
     attributes: {
       xmlns: 'http://www.w3.org/2000/svg',
-      width: width.toString(),
-      height: height.toString(),
+      width: prtN(width),
+      height: prtN(height),
     },
     value: '',
     children,
@@ -37,8 +43,8 @@ export function renderSVG(
     getINode('rect', {
       x: '0',
       y: '0',
-      width: width.toString(),
-      height: height.toString(),
+      width: prtN(width),
+      height: prtN(height),
       fill: '#fff',
     })
   );
@@ -52,15 +58,15 @@ export function renderSVG(
     const y = (posY - objHeight * scaleY * anchorY) / scaleY;
     const transformAttrs: Record<string, string> = {};
     if (scaleX !== 1 || scaleY !== 1) {
-      transformAttrs.transform = `scale(${scaleX}, ${scaleY})`;
+      transformAttrs.transform = `scale(${prtN(scaleX)}, ${prtN(scaleY)})`;
     }
     switch (object.type) {
       case 'circle':
         children.push(
           getINode('circle', {
-            cx: (x + object.radius).toString(),
-            cy: (y + object.radius).toString(),
-            r: object.radius.toString(),
+            cx: prtN(x + object.radius),
+            cy: prtN(y + object.radius),
+            r: prtN(object.radius),
             ...transformAttrs,
           })
         );
@@ -68,10 +74,10 @@ export function renderSVG(
       case 'rectangle':
         children.push(
           getINode('rect', {
-            x: x.toString(),
-            y: y.toString(),
-            width: (objWidth * scaleX).toString(),
-            height: (objHeight * scaleY).toString(),
+            x: prtN(x),
+            y: prtN(y),
+            width: prtN(objWidth * scaleX),
+            height: prtN(objHeight * scaleY),
             ...transformAttrs,
           })
         );
@@ -92,10 +98,10 @@ export function renderSVG(
         children.push(
           getINode('use', {
             href: `#${object.value}`,
-            x: x.toString(),
-            y: y.toString(),
-            width: config.glyphWidth.toString(),
-            height: config.glyphHeight.toString(),
+            x: prtN(x),
+            y: prtN(y),
+            width: prtN(config.glyphWidth),
+            height: prtN(config.glyphHeight),
             ...transformAttrs,
           })
         );
@@ -105,10 +111,10 @@ export function renderSVG(
         children.push(
           getINode('use', {
             href: `#${object.value}`,
-            x: x.toString(),
-            y: y.toString(),
-            width: config.accidentalWidth.toString(),
-            height: config.accidentalHeight.toString(),
+            x: prtN(x),
+            y: prtN(y),
+            width: prtN(config.accidentalWidth),
+            height: prtN(config.accidentalHeight),
             ...transformAttrs,
           })
         );
@@ -118,9 +124,9 @@ export function renderSVG(
           getINode(
             'text',
             {
-              x: x.toString(),
-              y: (y + config.lyricSize).toString(),
-              'font-size': config.lyricSize.toString(),
+              x: prtN(x),
+              y: prtN(y + config.lyricSize),
+              'font-size': prtN(config.lyricSize),
               'font-family': 'sans-serif',
               'text-anchor': 'middle',
               'alignment-baseline': 'text-after-edge',

@@ -61,9 +61,15 @@ export function getDefRegister(
 function extractSymbol(
   name: string,
   unicode: string,
-  font: opentype.Font
+  font: opentype.Font,
+  PRECISION = 3
 ): INode {
   const fontSize = 1000;
+  const prtN = (num: number) =>
+    num
+      .toFixed(PRECISION)
+      .replace(/\.0+$/, '')
+      .replace(/(?<=\.\d+)0+$/, '');
 
   const code = parseInt(unicode.replace(/^U\+/, ''), 16);
   const glyph = font.charToGlyph(String.fromCodePoint(code));
@@ -76,7 +82,7 @@ function extractSymbol(
     name: 'symbol',
     attributes: {
       id: name,
-      viewBox: [x1, y1, width, height].join(' '),
+      viewBox: [x1, y1, width, height].map(prtN).join(' '),
       overflow: 'visible',
     },
     type: 'element',
