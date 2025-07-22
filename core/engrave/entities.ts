@@ -254,8 +254,62 @@ function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
     glyphHeight,
   } = config;
 
+  const barlinePadding: LayoutTree<RenderObject>[] = [
+    {
+      type: 'Leaf',
+      anchor: AnchorPosition.Right,
+      object: {
+        type: 'invisible-rectangle',
+        width: barLineLeftPadding,
+        height: barLineLength,
+      },
+    },
+    {
+      type: 'Leaf',
+      anchor: AnchorPosition.Left,
+      object: {
+        type: 'invisible-rectangle',
+        width: barLineRightPadding,
+        height: barLineLength,
+      },
+    },
+  ];
+
+  const getRepeatDots = (
+    anchor: AnchorPosition
+  ): LayoutTree<RenderObject>[] => [
+    {
+      type: 'Node',
+      transform: moveUp(barLineLength / 6),
+      children: [
+        {
+          type: 'Leaf',
+          anchor,
+          object: {
+            type: 'circle',
+            radius: barLineWidth,
+          },
+        },
+      ],
+    },
+    {
+      type: 'Node',
+      transform: moveDown(barLineLength / 6),
+      children: [
+        {
+          type: 'Leaf',
+          anchor,
+          object: {
+            type: 'circle',
+            radius: barLineWidth,
+          },
+        },
+      ],
+    },
+  ];
+
   switch (tag) {
-    case 'BarLine':
+    case Tag.BarLine:
       return {
         type: 'Node',
         transform: moveUp(glyphHeight / 2),
@@ -269,28 +323,48 @@ function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
               height: barLineLength,
             },
           },
-          {
-            type: 'Leaf',
-            anchor: AnchorPosition.Right,
-            object: {
-              type: 'invisible-rectangle',
-              width: barLineLeftPadding,
-              height: barLineLength,
-            },
-          },
-          {
-            type: 'Leaf',
-            anchor: AnchorPosition.Left,
-            object: {
-              type: 'invisible-rectangle',
-              width: barLineRightPadding,
-              height: barLineLength,
-            },
-          },
+          ...barlinePadding,
         ],
       };
-
-    case 'EndSign':
+    case Tag.DoubleBarLine:
+      return {
+        type: 'Node',
+        transform: moveUp(glyphHeight / 2),
+        children: [
+          {
+            type: 'Node',
+            transform: moveLeft(thickBarLineGap / 2),
+            children: [
+              {
+                type: 'Leaf',
+                anchor: AnchorPosition.Right,
+                object: {
+                  type: 'rectangle',
+                  width: barLineWidth,
+                  height: barLineLength,
+                },
+              },
+            ],
+          },
+          {
+            type: 'Node',
+            transform: moveRight(thickBarLineGap / 2),
+            children: [
+              {
+                type: 'Leaf',
+                anchor: AnchorPosition.Left,
+                object: {
+                  type: 'rectangle',
+                  width: barLineWidth,
+                  height: barLineLength,
+                },
+              },
+            ],
+          },
+          ...barlinePadding,
+        ],
+      };
+    case Tag.EndSign:
       return {
         type: 'Node',
         transform: moveUp(glyphHeight / 2),
@@ -301,7 +375,7 @@ function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
             children: [
               {
                 type: 'Leaf',
-                anchor: AnchorPosition.Centre,
+                anchor: AnchorPosition.Right,
                 object: {
                   type: 'rectangle',
                   width: barLineWidth,
@@ -319,28 +393,141 @@ function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
               height: barLineLength,
             },
           },
+          ...barlinePadding,
+        ],
+      };
+    case Tag.BeginRepeat:
+      return {
+        type: 'Node',
+        transform: moveUp(glyphHeight / 2),
+        children: [
+          {
+            type: 'Node',
+            transform: moveRight(thickBarLineGap),
+            children: [
+              {
+                type: 'Leaf',
+                anchor: AnchorPosition.Left,
+                object: {
+                  type: 'rectangle',
+                  width: barLineWidth,
+                  height: barLineLength,
+                },
+              },
+              {
+                type: 'Node',
+                transform: moveRight(barLineWidth + thickBarLineGap),
+                children: getRepeatDots(AnchorPosition.Left),
+              },
+            ],
+          },
           {
             type: 'Leaf',
             anchor: AnchorPosition.Right,
             object: {
-              type: 'invisible-rectangle',
-              width: barLineLeftPadding,
+              type: 'rectangle',
+              width: thickBarLineWidth,
               height: barLineLength,
             },
+          },
+          ...barlinePadding,
+        ],
+      };
+    case Tag.EndRepeat:
+      return {
+        type: 'Node',
+        transform: moveUp(glyphHeight / 2),
+        children: [
+          {
+            type: 'Node',
+            transform: moveLeft(thickBarLineGap),
+            children: [
+              {
+                type: 'Leaf',
+                anchor: AnchorPosition.Right,
+                object: {
+                  type: 'rectangle',
+                  width: barLineWidth,
+                  height: barLineLength,
+                },
+              },
+              {
+                type: 'Node',
+                transform: moveLeft(barLineWidth + thickBarLineGap),
+                children: getRepeatDots(AnchorPosition.Right),
+              },
+            ],
           },
           {
             type: 'Leaf',
             anchor: AnchorPosition.Left,
             object: {
-              type: 'invisible-rectangle',
-              width: barLineRightPadding,
+              type: 'rectangle',
+              width: thickBarLineWidth,
               height: barLineLength,
             },
           },
+          ...barlinePadding,
         ],
       };
-
-    case 'TimeSignature':
+    case Tag.BeginEndRepeat:
+      return {
+        type: 'Node',
+        transform: moveUp(glyphHeight / 2),
+        children: [
+          {
+            type: 'Node',
+            transform: moveRight(thickBarLineGap + thickBarLineWidth / 2),
+            children: [
+              {
+                type: 'Leaf',
+                anchor: AnchorPosition.Left,
+                object: {
+                  type: 'rectangle',
+                  width: barLineWidth,
+                  height: barLineLength,
+                },
+              },
+              {
+                type: 'Node',
+                transform: moveRight(barLineWidth + thickBarLineGap),
+                children: getRepeatDots(AnchorPosition.Left),
+              },
+            ],
+          },
+          {
+            type: 'Node',
+            transform: moveLeft(thickBarLineGap + thickBarLineWidth / 2),
+            children: [
+              {
+                type: 'Leaf',
+                anchor: AnchorPosition.Right,
+                object: {
+                  type: 'rectangle',
+                  width: barLineWidth,
+                  height: barLineLength,
+                },
+              },
+              {
+                type: 'Node',
+                transform: moveLeft(barLineWidth + thickBarLineGap),
+                children: getRepeatDots(AnchorPosition.Right),
+              },
+            ],
+          },
+          {
+            type: 'Leaf',
+            anchor: AnchorPosition.Centre,
+            object: {
+              type: 'rectangle',
+              width: thickBarLineWidth,
+              height: barLineLength,
+            },
+          },
+          ...barlinePadding,
+        ],
+      };
+    case Tag.TimeSignature:
       return {
         type: 'Node',
         transform: notrans(),
