@@ -11,6 +11,7 @@ export interface RawRenderConfig {
   pageHeight: number;
   lineWidth: number;
   lineGap: number;
+  smuflSize: number;
   glyphHeight_lineWidth: number;
   glyphWidth_glyphHeight: number;
   repeater4Height_glyphHeight: number;

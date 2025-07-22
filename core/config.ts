@@ -4,6 +4,7 @@ export const renderConfig = fromRawRenderConfig({
   pageHeight: 2828.4,
   lineWidth: 1500,
   lineGap: 30,
+  smuflSize: 1000,
   glyphHeight_lineWidth: 1 / 50,
   glyphWidth_glyphHeight: 3 / 4,
   repeater4Height_glyphHeight: 1 / 8,

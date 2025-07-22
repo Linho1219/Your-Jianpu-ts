@@ -26,7 +26,7 @@ export function renderSVG(
       .toFixed(PRECISION)
       .replace(/\.0+$/, '')
       .replace(/(?<=\.\d+)0+$/, '');
-  const defReg = getDefRegister('LathaBold.ttf', 'Leland.otf');
+  const defReg = getDefRegister('LathaBold.ttf', 'Leland.otf', config);
   const children: INode[] = [];
   const rootNode: INode = {
     name: 'svg',

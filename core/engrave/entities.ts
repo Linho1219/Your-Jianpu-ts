@@ -120,23 +120,25 @@ function drawSound(
     })),
   });
 
-  const getAccidental = (
+  function getAccidental(
     accidental: Accidental,
     scaleY = 1
-  ): LayoutTree<RenderObject> => ({
-    type: 'Node',
-    transform: move(-glyphWidth / 2, -glyphHeight * scaleY),
-    children: [
-      {
-        type: 'Leaf',
-        anchor: AnchorPosition.TopRight,
-        object: {
-          type: 'accidental',
-          value: accidental,
+  ): LayoutTree<RenderObject> {
+    return {
+      type: 'Node',
+      transform: move(-glyphWidth / 2, -glyphHeight * scaleY),
+      children: [
+        {
+          type: 'Leaf',
+          anchor: AnchorPosition.TopRight,
+          object: {
+            type: 'accidental',
+            value: accidental,
+          },
         },
-      },
-    ],
-  });
+      ],
+    };
+  }
 
   function getTransposeDots(
     count: number,
