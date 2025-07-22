@@ -4,8 +4,8 @@ import { INode } from 'svgson';
 import { getINode } from './utils';
 import * as opentype from 'opentype.js';
 
-import numGlyphInfo from './fonts/num/meta/glyphnames.json';
-import smuflGlyphInfo from './fonts/smufl/meta/glyphnames.json';
+import numGlyphInfo from '../fonts/num/meta/glyphnames.json';
+import smuflGlyphInfo from '../fonts/smufl/meta/glyphnames.json';
 
 const registeredNums = new Set<keyof typeof numGlyphInfo>();
 const registeredSmufl = new Set<keyof typeof smuflGlyphInfo>();
@@ -13,8 +13,8 @@ const registeredSmufl = new Set<keyof typeof smuflGlyphInfo>();
 const numGlyphNames = Object.keys(numGlyphInfo);
 const smuflGlyphNames = Object.keys(smuflGlyphInfo);
 
-const numFontDir = './svg/fonts/num';
-const smuflFontDir = './svg/fonts/smufl';
+const numFontDir = './fonts/num';
+const smuflFontDir = './fonts/smufl';
 function loadFonts(numFontFilename: string, smuflFontFilename: string) {
   const numFontPath = path.join(numFontDir, numFontFilename);
   const numFontBuffer = fs.readFileSync(numFontPath);
