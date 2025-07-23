@@ -12,7 +12,6 @@ import {
   getINode,
   getINodeText,
 } from './utils';
-import { getDefRegister } from './defReg';
 
 export function renderSVG(
   flatLayout: DrawDirective<RenderObject>[],
@@ -26,7 +25,7 @@ export function renderSVG(
       .toFixed(PRECISION)
       .replace(/\.0+$/, '')
       .replace(/(?<=\.\d+)0+$/, '');
-  const defReg = getDefRegister('LathaBold.ttf', 'Leland.otf', config);
+  const { defReg } = config;
   const children: INode[] = [];
   const rootNode: INode = {
     name: 'svg',
@@ -106,15 +105,15 @@ export function renderSVG(
           })
         );
         break;
-      case 'accidental':
+      case 'symbol':
         defReg.reg(object.value);
         children.push(
           getINode('use', {
             href: `#${object.value}`,
             x: prtN(x),
             y: prtN(y),
-            width: prtN(config.accidentalWidth),
-            height: prtN(config.accidentalHeight),
+            width: prtN(objWidth),
+            height: prtN(objHeight),
             ...transformAttrs,
           })
         );

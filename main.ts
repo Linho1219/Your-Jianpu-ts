@@ -78,7 +78,7 @@ const testMusic: Music = {
           duration: new Fraction(1, 4),
         },
         // |
-        { type: 'Tag', tag: Tag.BarLine },
+        { type: 'Tag', tag: Tag.BeginRepeat },
         // 6..//
         {
           type: 'Event',
@@ -157,7 +157,7 @@ const testMusic: Music = {
           duration: new Fraction(1, 4),
         },
         // |
-        { type: 'Tag', tag: Tag.BarLine },
+        { type: 'Tag', tag: Tag.BeginEndRepeat },
         // 4/
         {
           type: 'Event',
@@ -251,7 +251,7 @@ const testMusic: Music = {
           duration: new Fraction(1, 4),
         },
         // |
-        { type: 'Tag', tag: Tag.BarLine },
+        { type: 'Tag', tag: Tag.DoubleBarLine },
         // 2*
         {
           type: 'Event',
@@ -263,8 +263,16 @@ const testMusic: Music = {
               sound: {
                 type: 'Note',
                 pitches: [
-                  { whiteKey: WhiteKey.K7, octaveTranspose: 1 },
-                  { whiteKey: WhiteKey.K4, octaveTranspose: 1 },
+                  {
+                    whiteKey: WhiteKey.K7,
+                    octaveTranspose: 1,
+                    accidental: Accidental.Flat,
+                  },
+                  {
+                    whiteKey: WhiteKey.K4,
+                    octaveTranspose: 1,
+                    accidental: Accidental.DoubleSharp,
+                  },
                   { whiteKey: WhiteKey.K6, octaveTranspose: -1 },
                 ],
               },

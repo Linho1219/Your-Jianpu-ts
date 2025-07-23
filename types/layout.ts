@@ -1,15 +1,16 @@
+import { SymbolName } from '../svg/defReg';
 import { Accidental, WhiteKey } from './basic';
 
 export type AlignText = 'left' | 'right' | 'center';
 
 export type RenderObject =
   | { type: 'glyph'; value: Glyph }
-  | { type: 'accidental'; value: Accidental }
   | { type: 'circle'; radius: number }
   | { type: 'rectangle'; width: number; height: number }
   | { type: 'curve'; width: number; height: number }
   | { type: 'text'; size: number; align: AlignText; content: string }
-  | { type: 'invisible-rectangle'; width: number; height: number };
+  | { type: 'invisible-rectangle'; width: number; height: number }
+  | { type: 'symbol'; value: SymbolName; width: number; height: number };
 
 export enum Glyph {
   GX = 'GlyphX',

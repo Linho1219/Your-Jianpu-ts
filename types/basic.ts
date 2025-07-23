@@ -1,4 +1,5 @@
 import Fraction from 'fraction.js';
+import { SymbolName } from '../svg/defReg';
 
 export type Duration = Fraction;
 
@@ -12,6 +13,12 @@ export interface Action {
   dot: number;
   /** 动作内容 */
   sound: Sound;
+  /** 附加符号 */
+  symbols?: {
+    top?: SymbolName[];
+    left?: SymbolName[];
+    right?: SymbolName[];
+  };
 }
 
 export type Event =

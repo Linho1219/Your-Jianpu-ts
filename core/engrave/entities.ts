@@ -42,7 +42,8 @@ function drawEvent(
   const { glyphHeight, repeater4Width, repeater4Height, lyricSize } = config;
   switch (event.type) {
     case 'Action':
-      return drawSound(event.value, config);
+      const soundTree = drawSound(event.value, config);
+      return soundTree;
     case 'Repeater4':
       return {
         type: 'Node',
@@ -93,6 +94,8 @@ function drawSound(
     transposeDotRadius,
     beamGap,
     beamHeight,
+    accidentalYOffset,
+    symbolXGap,
   } = config;
 
   const getGlyph = (glyph: Glyph): LayoutTree<RenderObject> => ({
@@ -124,16 +127,22 @@ function drawSound(
     accidental: Accidental,
     scaleY = 1
   ): LayoutTree<RenderObject> {
+    const { metrics } = config.defReg.regAndGet(accidental);
     return {
       type: 'Node',
-      transform: move(-glyphWidth / 2, -glyphHeight * scaleY),
+      transform: move(
+        -glyphWidth / 2 - symbolXGap,
+        (-glyphHeight + accidentalYOffset) * scaleY
+      ),
       children: [
         {
           type: 'Leaf',
           anchor: AnchorPosition.TopRight,
           object: {
-            type: 'accidental',
+            type: 'symbol',
             value: accidental,
+            width: metrics.width,
+            height: metrics.height,
           },
         },
       ],

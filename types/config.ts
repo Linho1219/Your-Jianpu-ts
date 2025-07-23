@@ -1,3 +1,4 @@
+import { getDefRegister } from '../svg/defReg';
 import { TimeSignature } from './basic';
 
 /**
@@ -12,7 +13,7 @@ export interface RawRenderConfig {
   lineWidth: number;
   lineGap: number;
   smuflSize: number;
-  glyphHeight_lineWidth: number;
+  glyphHeight: number;
   glyphWidth_glyphHeight: number;
   repeater4Height_glyphHeight: number;
   repeater4Width_glyphWidth: number;
@@ -22,8 +23,9 @@ export interface RawRenderConfig {
   dotGap_glyphHeight: number;
   beamHeight_glyphHeight: number;
   beamGap_glyphHeight: number;
-  accidentalHeight_glyphHeight: number;
-  accidentalWidth_accidentalHeight: number;
+  accidentalYOffset_glyphHeight: number;
+  symbolXGap_glyphWidth: number;
+  symbolYGap_glyphHeight: number;
   barLineLength_glyphHeight: number;
   barLineWidth_glyphWidth: number;
   barLineLeftPadding_glyphWidth: number;
@@ -38,6 +40,8 @@ export interface RawRenderConfig {
   chordGap_glyphHeight: number;
   chordYscale: number;
   initialTimeSignature: TimeSignature;
+  numFontFilename: string;
+  smuflFontFilename: string;
 }
 
 /** 完整的渲染配置 */
@@ -52,8 +56,9 @@ export interface RenderConfig extends RawRenderConfig {
   dotGap: number;
   beamHeight: number;
   beamGap: number;
-  accidentalHeight: number;
-  accidentalWidth: number;
+  accidentalYOffset: number;
+  symbolXGap: number;
+  symbolYGap: number;
   barLineLength: number;
   barLineWidth: number;
   barLineLeftPadding: number;
@@ -66,20 +71,18 @@ export interface RenderConfig extends RawRenderConfig {
   lyricSize: number;
   lyricGap: number;
   chordGap: number;
+  defReg: ReturnType<typeof getDefRegister>;
 }
 
 export function fromRawRenderConfig(raw: RawRenderConfig): RenderConfig {
-  const glyphHeight = raw.glyphHeight_lineWidth * raw.lineWidth,
+  const glyphHeight = raw.glyphHeight,
     glyphWidth = raw.glyphWidth_glyphHeight * glyphHeight,
-    accidentalHeight = raw.accidentalHeight_glyphHeight * glyphHeight,
     barLineWidth = raw.barLineWidth_glyphWidth * glyphWidth,
     lineGap = raw.lineGap;
 
   return {
     ...raw,
-    glyphHeight,
     glyphWidth,
-    accidentalHeight,
     barLineWidth,
     repeater4Height: raw.repeater4Height_glyphHeight * glyphHeight,
     repeater4Width: raw.repeater4Width_glyphWidth * glyphWidth,
@@ -89,7 +92,9 @@ export function fromRawRenderConfig(raw: RawRenderConfig): RenderConfig {
     dotGap: raw.dotGap_glyphHeight * glyphHeight,
     beamHeight: raw.beamHeight_glyphHeight * glyphHeight,
     beamGap: raw.beamGap_glyphHeight * glyphHeight,
-    accidentalWidth: raw.accidentalWidth_accidentalHeight * accidentalHeight,
+    accidentalYOffset: raw.accidentalYOffset_glyphHeight * glyphHeight,
+    symbolXGap: raw.symbolXGap_glyphWidth * glyphWidth,
+    symbolYGap: raw.symbolYGap_glyphHeight * glyphHeight,
     barLineLength: raw.barLineLength_glyphHeight * glyphHeight,
     barLineLeftPadding: raw.barLineLeftPadding_glyphWidth * glyphWidth,
     barLineRightPadding: raw.barLineRightPadding_glyphWidth * glyphWidth,
@@ -101,5 +106,10 @@ export function fromRawRenderConfig(raw: RawRenderConfig): RenderConfig {
     lyricSize: raw.lyricSize_glyphHeight * glyphHeight,
     lyricGap: raw.lyricGap_lineGap * lineGap,
     chordGap: raw.chordGap_glyphHeight * glyphHeight,
+    defReg: getDefRegister(
+      raw.numFontFilename,
+      raw.smuflFontFilename,
+      raw.smuflSize
+    ),
   };
 }

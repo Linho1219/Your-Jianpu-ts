@@ -9,22 +9,22 @@ import smuflGlyphInfo from '../fonts/smufl/meta/glyphnames.json';
 import { BBox } from '../types/layout';
 import { RenderConfig } from '../types/config';
 
-type NumGlyphName = keyof typeof numGlyphInfo;
-type SmuflGlyphName = keyof typeof smuflGlyphInfo;
-type GlyphName = NumGlyphName | SmuflGlyphName;
+type NumSymbolName = keyof typeof numGlyphInfo;
+type SmuflSymbolName = keyof typeof smuflGlyphInfo;
+export type SymbolName = NumSymbolName | SmuflSymbolName;
 
 interface GlyphInfo {
-  name: GlyphName;
+  name: SymbolName;
   type: 'num' | 'smufl';
   codepoint: string;
   codepointInt: number;
   description: string;
 }
 
-const glyphInfoMap = new Map<GlyphName, GlyphInfo>();
+const glyphInfoMap = new Map<SymbolName, GlyphInfo>();
 for (const [name, info] of Object.entries(numGlyphInfo)) {
-  glyphInfoMap.set(name as NumGlyphName, {
-    name: name as NumGlyphName,
+  glyphInfoMap.set(name as NumSymbolName, {
+    name: name as NumSymbolName,
     type: 'num',
     codepoint: info.codepoint,
     codepointInt: parseInt(info.codepoint.replace(/^U\+/, ''), 16),
@@ -32,16 +32,16 @@ for (const [name, info] of Object.entries(numGlyphInfo)) {
   });
 }
 for (const [name, info] of Object.entries(smuflGlyphInfo)) {
-  glyphInfoMap.set(name as SmuflGlyphName, {
-    name: name as SmuflGlyphName,
+  glyphInfoMap.set(name as SmuflSymbolName, {
+    name: name as SmuflSymbolName,
     type: 'smufl',
     codepoint: info.codepoint,
     codepointInt: parseInt(info.codepoint.replace(/^U\+/, ''), 16),
     description: info.description,
   });
 }
-function isGlyphName(name: string): name is GlyphName {
-  return glyphInfoMap.has(name as GlyphName);
+function isSymbolName(name: string): name is SymbolName {
+  return glyphInfoMap.has(name as SymbolName);
 }
 
 const numFontDir = './fonts/num';
@@ -61,33 +61,33 @@ function loadFonts(numFontFilename: string, smuflFontFilename: string) {
 export function getDefRegister(
   numFontFilename: string,
   smuflFontFilename: string,
-  config: RenderConfig
+  smuflSize: number
 ) {
-  const registeredGlyphs = new Set<GlyphName>();
+  const registeredGlyphs = new Set<SymbolName>();
   const symbolCache = new Map<string, ExtractedSymbol>();
 
   const { numFont, smuflFont } = loadFonts(numFontFilename, smuflFontFilename);
 
-  function getSymbolByName(name: GlyphName) {
+  function getSymbolByName(name: SymbolName) {
     const cached = symbolCache.get(name);
     if (cached) return cached;
     const glyphInfo = glyphInfoMap.get(name);
     if (!glyphInfo) throw new Error(`Unknown glyph name: ${name}`);
     const { codepoint, type } = glyphInfo;
     const srcFont = type === 'num' ? numFont : smuflFont;
-    const extracted = extractSymbol(name, codepoint, srcFont, config.smuflSize);
+    const extracted = extractSymbol(name, codepoint, srcFont, smuflSize);
     symbolCache.set(name, extracted);
     return extracted;
   }
 
   function reg(name: string) {
-    if (isGlyphName(name)) {
+    if (isSymbolName(name)) {
       registeredGlyphs.add(name);
     } else throw new Error(`Unknown glyph name: ${name}`);
   }
 
   function regAndGet(name: string): ExtractedSymbol {
-    if (isGlyphName(name)) {
+    if (isSymbolName(name)) {
       registeredGlyphs.add(name);
       return getSymbolByName(name);
     } else throw new Error(`Unknown glyph name: ${name}`);
@@ -97,7 +97,7 @@ export function getDefRegister(
     const defsChildren: INode[] = [];
     const defsNode = getINode('defs', {}, defsChildren);
 
-    registeredGlyphs.forEach((name) => {
+    [...registeredGlyphs].sort().forEach((name) => {
       const extracted = getSymbolByName(name);
       defsChildren.push(extracted.symbolNode);
     });

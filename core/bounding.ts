@@ -38,8 +38,6 @@ export function getSize(object: RenderObject, config: RenderConfig): Size {
   switch (object.type) {
     case 'glyph':
       return [config.glyphWidth, config.glyphHeight];
-    case 'accidental':
-      return [config.accidentalWidth, config.accidentalHeight];
     case 'rectangle':
       return [object.width, object.height];
     case 'circle':
@@ -50,6 +48,8 @@ export function getSize(object: RenderObject, config: RenderConfig): Size {
       return [object.width, object.height];
     case 'text':
       return [0, object.size]; // 需要进一步处理
+    case 'symbol':
+      return [object.width, object.height];
     default:
       throw new Error(`Unknown render object type`);
   }
