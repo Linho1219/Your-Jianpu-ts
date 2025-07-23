@@ -17,7 +17,7 @@ export const renderConfig = fromRawRenderConfig({
   beamGap_glyphHeight: 1 / 8,
   accidentalYOffset_glyphHeight: -1 / 5,
   symbolXGap_glyphWidth: 1 / 8,
-  symbolYGap_glyphHeight: 1 / 8,
+  symbolYGap_glyphHeight: 1 / 4,
   barLineLength_glyphHeight: 3 / 2,
   barLineWidth_glyphWidth: 1 / 10,
   barLineLeftPadding_glyphWidth: 3 / 2,

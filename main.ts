@@ -91,10 +91,11 @@ const testMusic: Music = {
                 type: 'Note',
                 pitches: [
                   { whiteKey: WhiteKey.K6, octaveTranspose: 1 },
-                  { whiteKey: WhiteKey.K6, octaveTranspose: 0 },
-                  { whiteKey: WhiteKey.K6, octaveTranspose: -1 },
                   { whiteKey: WhiteKey.K1, octaveTranspose: -2 },
                 ],
+              },
+              symbols: {
+                top: ['articStaccatissimoAbove'],
               },
             },
           },
@@ -224,6 +225,9 @@ const testMusic: Music = {
                   },
                 ],
               },
+              symbols: {
+                top: ['articTenutoAbove'],
+              },
             },
           },
           duration: new Fraction(1, 4),
@@ -245,6 +249,9 @@ const testMusic: Music = {
                     accidental: Accidental.Natural,
                   },
                 ],
+              },
+              symbols: {
+                top: ['articAccentAbove'],
               },
             },
           },
@@ -307,6 +314,9 @@ const testMusic: Music = {
               sound: {
                 type: 'Note',
                 pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 0 }],
+              },
+              symbols: {
+                top: ['fermataAbove'],
               },
             },
           },

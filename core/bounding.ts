@@ -57,9 +57,11 @@ export function getSize(object: RenderObject, config: RenderConfig): Size {
 
 export function getBoundingBox(
   tree: LayoutTree<RenderObject>,
-  config: RenderConfig
+  config: RenderConfig,
+  ignoreTypes?: string[]
 ): BoundingBox {
   if (tree.type === 'Leaf') {
+    if (ignoreTypes?.includes(tree.object.type)) return null;
     const size = getSize(tree.object, config);
     const [width, height] = size;
     const [ax, ay] = normAnchorPosition(tree.anchor);
@@ -69,7 +71,7 @@ export function getBoundingBox(
     ];
   } else if (tree.type === 'Node') {
     const boxes = tree.children.map((child) =>
-      applyTransform(getBoundingBox(child, config), tree.transform)
+      applyTransform(getBoundingBox(child, config, ignoreTypes), tree.transform)
     );
     return boxes.reduce(bboxUnion, null);
   }

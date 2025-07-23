@@ -43,7 +43,41 @@ function drawEvent(
   switch (event.type) {
     case 'Action':
       const soundTree = drawSound(event.value, config);
-      return soundTree;
+      if (!event.value.symbols) return soundTree;
+      const { top, left, right } = event.value.symbols;
+      const soundBBox = getBoundingBox(soundTree, config, ['symbol']);
+      const [[ox1, oy1], [ox2, oy2]] = soundBBox!;
+      const symbolTrees: LayoutTree<RenderObject>[] = [];
+      if (top) {
+        let currentY = oy1 - config.symbolYGap;
+        const topSymbols: LayoutTree<RenderObject>[] = top.map((symbolName) => {
+          const metrics = config.defReg.regAndGet(symbolName).metrics;
+          const symbolNode: LayoutTree<RenderObject> = {
+            type: 'Node',
+            transform: moveDown(currentY),
+            children: [
+              {
+                type: 'Leaf',
+                anchor: AnchorPosition.Bottom,
+                object: {
+                  type: 'symbol',
+                  value: symbolName,
+                  width: metrics.width,
+                  height: metrics.height,
+                },
+              },
+            ],
+          };
+          currentY -= metrics.height + config.symbolYGap;
+          return symbolNode;
+        });
+        symbolTrees.push(...topSymbols);
+      }
+      return {
+        type: 'Node',
+        transform: notrans(),
+        children: [soundTree, ...symbolTrees],
+      };
     case 'Repeater4':
       return {
         type: 'Node',
