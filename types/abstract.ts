@@ -53,50 +53,19 @@ export enum Boundary {
 }
 
 export class IntervalMap<T> {
-  private _map: Map<string, T>;
-  constructor() {
-    this._map = new Map<string, T>();
-  }
-  private static toKey(interval: Interval): string {
-    return `${interval.start},${interval.end}`;
-  }
-  private static fromKey<T>(key: string): Interval {
-    const [start, end] = key.split(',').map(Number);
-    return { start, end };
-  }
-  set(interval: Interval, value: T) {
-    const key = IntervalMap.toKey(interval);
-    this._map.set(key, value);
-  }
-  get(interval: Interval): T | undefined {
-    const key = IntervalMap.toKey(interval);
-    return this._map.get(key);
-  }
-  has(interval: Interval): boolean {
-    const key = IntervalMap.toKey(interval);
-    return this._map.has(key);
-  }
-  delete(interval: Interval): boolean {
-    const key = IntervalMap.toKey(interval);
-    return this._map.delete(key);
-  }
-  clear(): void {
-    this._map.clear();
+  private records: [Interval, T][] = [];
+  set(interval: Interval, value: T): void {
+    this.records.push([interval, value]);
   }
   entries(): [Interval, T][] {
-    return Array.from(this._map.entries()).map(([key, value]) => [
-      IntervalMap.fromKey(key),
-      value,
-    ]);
+    return [...this.records];
   }
-  keys(): Interval[] {
-    return Array.from(this._map.keys()).map(IntervalMap.fromKey);
+  pushRecords(records: [Interval, T][]): void {
+    this.records.push(...records);
   }
   static fromRecords<T>(records: [Interval, T][]): IntervalMap<T> {
     const map = new IntervalMap<T>();
-    for (const [interval, value] of records) {
-      map.set(interval, value);
-    }
+    map.pushRecords(records);
     return map;
   }
 }
