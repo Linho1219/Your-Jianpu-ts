@@ -324,9 +324,47 @@ const testMusic: Music = {
         {
           type: 'Event',
           event: {
-            type: 'Repeater4',
+            type: 'Action',
+            value: {
+              timeMultiplier: 1,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 0 }],
+              },
+            },
           },
-          duration: new Fraction(1, 4),
+          duration: new Fraction(1, 12),
+        },
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 1,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 0 }],
+              },
+            },
+          },
+          duration: new Fraction(1, 12),
+        },
+        {
+          type: 'Event',
+          event: {
+            type: 'Action',
+            value: {
+              timeMultiplier: 1,
+              dot: 0,
+              sound: {
+                type: 'Note',
+                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 0 }],
+              },
+            },
+          },
+          duration: new Fraction(1, 12),
         },
         // |||
         { type: 'Tag', tag: Barline.EndSign },
@@ -335,10 +373,13 @@ const testMusic: Music = {
         [{ start: 8, end: 9 }, { type: 'Beam' }],
         [{ start: 9, end: 9 }, { type: 'Beam' }],
         [{ start: 13, end: 14 }, { type: 'Beam' }],
+        [{ start: 22, end: 24 }, { type: 'Beam' }],
         [{ start: 3, end: 4 }, { type: 'Slur' }],
         [{ start: 13, end: 14 }, { type: 'Slur' }],
-        [{ start: 19, end: 20 }, { type: 'Slur' }],
-        [{ start: 14, end: 16 }, { type: 'Slur' }],
+        [
+          { start: 22, end: 24 },
+          { type: 'Tuplet', value: 3 },
+        ],
         [{ start: 20, end: 20 }, { type: 'Beam' }],
         [
           { start: 3, end: 9 },

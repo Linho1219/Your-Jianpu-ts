@@ -8,7 +8,7 @@ import {
 import { RenderConfig } from '../../types/config';
 import { RenderObject, AnchorPosition } from '../../types/layout';
 import { Interval, IntervalMap, Span, Spans } from '../../types/abstract';
-import { wrapNode } from './utils';
+import { engraveNumber, wrapNode } from './utils';
 
 interface SpanEngraveRelate {
   node: LayoutTree<RenderObject>;
@@ -83,10 +83,48 @@ function engraveSpan(
   const startX = centerXs[start];
   const endX = centerXs[end];
   switch (span.type) {
-    case 'Slur': {
+    case 'Slur':
+    case 'Tie':
       return {
         node: engraveSlur(startX, endX, currentY, config),
         occupiedHeight: config.slurHeight + config.slurPaddingBottom,
+        affectedInterval: { start: start + 1, end: end - 1 },
+      };
+    case 'Tuplet': {
+      const textSideMargin = config.smuflSize * 0.1;
+      const engravedText = engraveNumber(
+        span.value,
+        'tuplet',
+        config,
+        AnchorPosition.Centre
+      );
+      const { width: textWidth, height: textHeight } = engravedText.metrics;
+      const backgroundRect: LayoutTree<RenderObject> = {
+        type: 'Leaf',
+        anchor: AnchorPosition.Centre,
+        object: {
+          type: 'rectangle',
+          width: textWidth + textSideMargin * 2,
+          height: textHeight,
+          fill: 'white',
+        },
+      };
+      const textWithBg = wrapNode(
+        move(
+          (startX + endX) / 2,
+          currentY - config.slurPaddingBottom - config.slurHeight
+        ),
+        backgroundRect,
+        engravedText.node
+      );
+      return {
+        node: wrapNode(
+          notrans(),
+          engraveSlur(startX, endX, currentY, config),
+          textWithBg
+        ),
+        occupiedHeight:
+          textHeight / 2 + config.slurHeight + config.slurPaddingBottom,
         affectedInterval: { start: start + 1, end: end - 1 },
       };
     }

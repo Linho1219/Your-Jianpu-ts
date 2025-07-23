@@ -6,7 +6,7 @@ export type AlignText = 'left' | 'right' | 'center';
 export type RenderObject =
   | { type: 'glyph'; value: Glyph }
   | { type: 'circle'; radius: number }
-  | { type: 'rectangle'; width: number; height: number }
+  | { type: 'rectangle'; width: number; height: number; fill?: string }
   | { type: 'curve'; width: number; height: number }
   | { type: 'text'; size: number; align: AlignText; content: string }
   | { type: 'invisible-rectangle'; width: number; height: number }

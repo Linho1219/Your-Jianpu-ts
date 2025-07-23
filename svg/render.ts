@@ -70,17 +70,18 @@ export function renderSVG(
           })
         );
         break;
-      case 'rectangle':
-        children.push(
-          getINode('rect', {
-            x: prtN(x),
-            y: prtN(y),
-            width: prtN(objWidth * scaleX),
-            height: prtN(objHeight * scaleY),
-            ...transformAttrs,
-          })
-        );
+      case 'rectangle': {
+        const attr: Record<string, string> = {
+          x: prtN(x),
+          y: prtN(y),
+          width: prtN(objWidth * scaleX),
+          height: prtN(objHeight * scaleY),
+          ...transformAttrs,
+        };
+        if (object.fill) attr.fill = object.fill;
+        children.push(getINode('rect', attr));
         break;
+      }
       case 'curve':
         children.push(
           getINode('path', {
