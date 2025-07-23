@@ -11,10 +11,17 @@ import {
 } from '../../types/layout';
 import { RenderConfig } from '../../types/config';
 import { Event, Action, Accidental } from '../../types/basic';
-import { Tag } from '../../types/abstract';
+import {
+  Barline,
+  entityLikeBarLine,
+  Tag,
+  TagEntity,
+  tagLikeBarLine,
+} from '../../types/abstract';
 import { RenderObject, AnchorPosition } from '../../types/layout';
 import { SlicedEntity } from '../slice';
 import { getBoundingBox } from '../bounding';
+import { SymbolName } from '../../svg/defReg';
 
 function engraveSliceElement(
   element: SlicedEntity,
@@ -27,7 +34,7 @@ function engraveSliceElement(
       children: [],
     };
   if (element.type === 'Event') return drawEvent(element.event, config);
-  if (element.type === 'Tag') return drawTag(element.tag, config);
+  if (element.type === 'Tag') return drawTag(element, config);
   throw new Error('Unknown SliceElement kind');
 }
 
@@ -288,7 +295,122 @@ function drawSound(
   } else throw new Error(`Unknown sound type`);
 }
 
-function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
+function drawTag(
+  entity: TagEntity,
+  config: RenderConfig
+): LayoutTree<RenderObject> {
+  if (tagLikeBarLine(entity.tag)) return drawBarline(entity.tag, config);
+  switch (entity.tag) {
+    case 'TimeSignature': {
+      const children: LayoutTree<RenderObject>[] = [];
+      const node: LayoutTree<RenderObject> = {
+        type: 'Node',
+        transform: {
+          localPosition: [0, -config.glyphHeight / 2],
+          localScale: [1, config.timeSignatureYScale],
+        },
+        children,
+      };
+      const renderedSeries = entity.value
+        .map((num) => {
+          const glyphs: SymbolName[] = [];
+          while (num > 0) {
+            const currDigit = num % 10;
+            num = Math.floor(num / 10);
+            glyphs.push(`timeSig${currDigit}` as SymbolName);
+          }
+          return glyphs.reverse();
+        })
+        .map((glyphs) => glyphs.map((glyph) => config.defReg.regAndGet(glyph)))
+        .map((extractedSymbols, index) => {
+          let currentX = 0;
+          const numberSerie: LayoutTree<RenderObject>[] = extractedSymbols.map(
+            (symbol) => {
+              const node: LayoutTree<RenderObject> = {
+                type: 'Node',
+                transform: moveRight(currentX),
+                children: [
+                  {
+                    type: 'Leaf',
+                    anchor: !index
+                      ? AnchorPosition.BottomLeft
+                      : AnchorPosition.TopLeft,
+                    object: {
+                      type: 'symbol',
+                      value: symbol.name,
+                      width: symbol.metrics.width,
+                      height: symbol.metrics.height,
+                    },
+                  },
+                ],
+              };
+              currentX += symbol.metrics.width;
+              return node;
+            }
+          );
+          const numbersNode: LayoutTree<RenderObject> = {
+            type: 'Node',
+            transform: move(
+              -currentX / 2,
+              !index ? -config.beamGap : +config.beamGap
+            ),
+            children: numberSerie,
+          };
+          return { numbersNode, width: currentX };
+        });
+      const maxWidth =
+        Math.max(...renderedSeries.map(({ width }) => width)) * 1.2;
+      children.push(...renderedSeries.map(({ numbersNode }) => numbersNode));
+      children.push({
+        type: 'Leaf',
+        anchor: AnchorPosition.Centre,
+        object: {
+          type: 'rectangle',
+          width: maxWidth,
+          height: config.barLineWidth,
+        },
+      });
+      children.push({
+        type: 'Node',
+        transform: notrans(),
+        children: [
+          {
+            type: 'Leaf',
+            anchor: AnchorPosition.Right,
+            object: {
+              type: 'invisible-rectangle',
+              width: config.timeSignatureLeftPadding,
+              height: config.barLineLength,
+            },
+          },
+        ],
+      });
+      children.push({
+        type: 'Node',
+        transform: notrans(),
+        children: [
+          {
+            type: 'Leaf',
+            anchor: AnchorPosition.Left,
+            object: {
+              type: 'invisible-rectangle',
+              width: config.timeSignatureRightPadding,
+              height: config.barLineLength,
+            },
+          },
+        ],
+      });
+      return node;
+    }
+    default:
+      throw new Error(`Unknown tag type: ${entity.tag}`);
+  }
+}
+
+function drawBarline(
+  tag: Barline,
+  config: RenderConfig
+): LayoutTree<RenderObject> {
   const {
     barLineLength,
     barLineWidth,
@@ -354,7 +476,7 @@ function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
   ];
 
   switch (tag) {
-    case Tag.BarLine:
+    case Barline.BarLine:
       return {
         type: 'Node',
         transform: moveUp(glyphHeight / 2),
@@ -371,7 +493,7 @@ function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
           ...barlinePadding,
         ],
       };
-    case Tag.DashedBarLine:
+    case Barline.DashedBarLine: {
       // 3 2 3 2 3 2 3 = 18
       // ---  ---  ---  ---
       const unit = barLineLength / 18;
@@ -401,7 +523,8 @@ function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
         transform: moveUp(glyphHeight / 2),
         children: [...barlineChildren, ...barlinePadding],
       };
-    case Tag.DoubleBarLine:
+    }
+    case Barline.DoubleBarLine:
       return {
         type: 'Node',
         transform: moveUp(glyphHeight / 2),
@@ -439,7 +562,7 @@ function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
           ...barlinePadding,
         ],
       };
-    case Tag.EndSign:
+    case Barline.EndSign:
       return {
         type: 'Node',
         transform: moveUp(glyphHeight / 2),
@@ -471,7 +594,7 @@ function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
           ...barlinePadding,
         ],
       };
-    case Tag.BeginRepeat:
+    case Barline.BeginRepeat:
       return {
         type: 'Node',
         transform: moveUp(glyphHeight / 2),
@@ -508,7 +631,7 @@ function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
           ...barlinePadding,
         ],
       };
-    case Tag.EndRepeat:
+    case Barline.EndRepeat:
       return {
         type: 'Node',
         transform: moveUp(glyphHeight / 2),
@@ -545,7 +668,7 @@ function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
           ...barlinePadding,
         ],
       };
-    case Tag.BeginEndRepeat:
+    case Barline.BeginEndRepeat:
       return {
         type: 'Node',
         transform: moveUp(glyphHeight / 2),
@@ -602,13 +725,7 @@ function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
           ...barlinePadding,
         ],
       };
-    case Tag.TimeSignature:
-      return {
-        type: 'Node',
-        transform: notrans(),
-        children: [], // TO-DO
-      };
     default:
-      throw new Error(`Unknown tag type: ${tag}`);
+      throw new Error(`Unknown barline type: ${tag}`);
   }
 }

@@ -16,15 +16,18 @@ export interface Entity {
 }
 
 /** 无持续时间的符号实体 */
-export interface TagEntity {
-  type: 'Tag';
-  tag: Tag;
-}
+export type TagEntity = { type: 'Tag' } & (
+  | {
+      tag: Barline;
+    }
+  | { tag: 'TimeSignature'; value: [number, number] }
+);
+
+export type Tag = TagEntity['tag'];
 
 export type AbstractEntity = Entity | TagEntity;
 
-export enum Tag {
-  TimeSignature = 'TimeSignature',
+export enum Barline {
   BarLine = 'BarLine',
   DashedBarLine = 'DashedBarLine',
   BeginEndRepeat = 'BeginEndRepeat',
@@ -115,15 +118,15 @@ export interface Music {
 }
 
 // utils
-export function tagLikeBarLine(tag: Tag): boolean {
+export function tagLikeBarLine(tag: string): tag is Barline {
   return (
-    tag === Tag.BarLine ||
-    tag === Tag.BeginEndRepeat ||
-    tag === Tag.BeginRepeat ||
-    tag === Tag.EndRepeat ||
-    tag === Tag.DoubleBarLine ||
-    tag === Tag.EndSign ||
-    tag === Tag.DashedBarLine
+    tag === Barline.BarLine ||
+    tag === Barline.BeginEndRepeat ||
+    tag === Barline.BeginRepeat ||
+    tag === Barline.EndRepeat ||
+    tag === Barline.DoubleBarLine ||
+    tag === Barline.EndSign ||
+    tag === Barline.DashedBarLine
   );
 }
 

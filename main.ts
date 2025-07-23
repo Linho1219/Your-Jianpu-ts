@@ -1,5 +1,5 @@
 import Fraction from 'fraction.js';
-import { IntervalMap, Music, Tag } from './types/abstract';
+import { IntervalMap, Music, Barline } from './types/abstract';
 import { Accidental, WhiteKey } from './types/basic';
 import { engraveMusic } from './core/main';
 import { renderConfig } from './core/config';
@@ -13,6 +13,11 @@ const testMusic: Music = {
     {
       type: 'music',
       entities: [
+        {
+          type:'Tag',
+          tag:'TimeSignature',
+          value: [4, 4],
+        },
         // 1
         {
           type: 'Event',
@@ -78,7 +83,7 @@ const testMusic: Music = {
           duration: new Fraction(1, 4),
         },
         // |
-        { type: 'Tag', tag: Tag.BeginRepeat },
+        { type: 'Tag', tag: Barline.BeginRepeat },
         // 6..//
         {
           type: 'Event',
@@ -158,7 +163,7 @@ const testMusic: Music = {
           duration: new Fraction(1, 4),
         },
         // |
-        { type: 'Tag', tag: Tag.BeginEndRepeat },
+        { type: 'Tag', tag: Barline.BeginEndRepeat },
         // 4/
         {
           type: 'Event',
@@ -258,7 +263,7 @@ const testMusic: Music = {
           duration: new Fraction(1, 4),
         },
         // |
-        { type: 'Tag', tag: Tag.DashedBarLine },
+        { type: 'Tag', tag: Barline.DashedBarLine },
         // 2*
         {
           type: 'Event',
@@ -331,7 +336,7 @@ const testMusic: Music = {
           duration: new Fraction(1, 4),
         },
         // |||
-        { type: 'Tag', tag: Tag.EndSign },
+        { type: 'Tag', tag: Barline.EndSign },
       ],
       spans: IntervalMap.fromRecords([
         [

@@ -107,6 +107,7 @@ export function getDefRegister(
 }
 
 interface ExtractedSymbol {
+  name: SymbolName;
   symbolNode: INode;
   metrics: {
     width: number;
@@ -155,6 +156,7 @@ function extractSymbol(
     value: '',
   };
   return {
+    name: name as SymbolName,
     symbolNode,
     metrics: {
       width,

@@ -39,6 +39,9 @@ export interface RawRenderConfig {
   lyricGap_lineGap: number;
   chordGap_glyphHeight: number;
   chordYscale: number;
+  timeSignatureYScale: number;
+  timeSignatureLeftPadding_glyphWidth: number;
+  timeSignatureRightPadding_glyphWidth: number;
   initialTimeSignature: TimeSignature;
   numFontFilename: string;
   smuflFontFilename: string;
@@ -71,6 +74,8 @@ export interface RenderConfig extends RawRenderConfig {
   lyricSize: number;
   lyricGap: number;
   chordGap: number;
+  timeSignatureLeftPadding: number;
+  timeSignatureRightPadding: number;
   defReg: ReturnType<typeof getDefRegister>;
 }
 
@@ -106,6 +111,10 @@ export function fromRawRenderConfig(raw: RawRenderConfig): RenderConfig {
     lyricSize: raw.lyricSize_glyphHeight * glyphHeight,
     lyricGap: raw.lyricGap_lineGap * lineGap,
     chordGap: raw.chordGap_glyphHeight * glyphHeight,
+    timeSignatureLeftPadding:
+      raw.timeSignatureLeftPadding_glyphWidth * glyphWidth,
+    timeSignatureRightPadding:
+      raw.timeSignatureRightPadding_glyphWidth * glyphWidth,
     defReg: getDefRegister(
       raw.numFontFilename,
       raw.smuflFontFilename,
