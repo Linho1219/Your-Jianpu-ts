@@ -63,6 +63,25 @@ export class IntervalMap<T> {
   pushRecords(records: [Interval, T][]): void {
     this.records.push(...records);
   }
+  getTouches(range: number | Interval): [Interval, T][] {
+    const interval =
+      typeof range === 'number' ? { start: range, end: range } : range;
+    return this.records.filter(
+      ([{ start, end }]) => !(start > interval.end || end < interval.start)
+    );
+  }
+  values(): T[] {
+    return this.records.map(([, value]) => value);
+  }
+  sort(fn: (a: [Interval, T], b: [Interval, T]) => number): void {
+    this.records.sort(fn);
+  }
+  shift() {
+    return this.records.shift();
+  }
+  get length(): number {
+    return this.records.length;
+  }
   static fromRecords<T>(records: [Interval, T][]): IntervalMap<T> {
     const map = new IntervalMap<T>();
     map.pushRecords(records);

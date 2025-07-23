@@ -5,6 +5,7 @@ import { engraveSliceElementWithCfg } from './engrave/entities';
 import { getBoundingBox, getBoundingBoxWithCfg } from './bounding';
 import { computeSliceWidths } from './spacing';
 import {
+  BBox,
   BoundingBox,
   LayoutTree,
   moveDown,
@@ -15,6 +16,7 @@ import {
 import { engraveBeams } from './engrave/beams';
 import { engraveSpans } from './engrave/spans';
 import { RenderConfig } from '../types/config';
+import { wrapNode } from './engrave/utils';
 
 export function engraveMusic(
   music: Music,
@@ -43,22 +45,23 @@ export function engraveMusic(
     (lineElements, voiceIndex) => {
       const voice = music.voices[voiceIndex];
       const spans = voice.spans;
-      const engravedEntities = engraveBaseNotes(
+      const { arrangedEntityNode, entityBoxes } = arrangeBaseNotes(
         slicesOffsetX,
-        engravedElementsByLine[voiceIndex]
+        engravedElementsByLine[voiceIndex],
+        config
       );
 
-      /** 下标归一化，index 均为仅 Event 的编号 */
-      const filteredOffset = slicesOffsetX.filter((_, index) => {
-        const ele = lineElements[index];
-        return !!ele && ele.type === 'Event';
-      });
-      const engravedBeams = engraveBeams(filteredOffset, spans, config);
-      const engravedSpans = engraveSpans(filteredOffset, spans, config);
+      const engravedBeams = engraveBeams(slicesOffsetX, spans, config);
+      const engravedSpans = engraveSpans(
+        slicesOffsetX,
+        entityBoxes,
+        spans,
+        config
+      );
       return {
         type: 'Node',
         transform: notrans(),
-        children: [engravedEntities, engravedBeams, engravedSpans],
+        children: [arrangedEntityNode, engravedBeams, engravedSpans],
         remarks: music.voices[voiceIndex].type,
       };
     }
@@ -76,22 +79,22 @@ export function engraveMusic(
   };
 }
 
-function engraveBaseNotes(
+function arrangeBaseNotes(
   slicesOffsetX: number[],
-  engravedEntities: LayoutTree<RenderObject>[]
-): LayoutTree<RenderObject> {
-  return {
-    type: 'Node',
-    transform: notrans(),
-    children: engravedEntities.map((entityTree, index) => {
+  engravedEntities: LayoutTree<RenderObject>[],
+  config: RenderConfig
+) {
+  const entityBoxes: BoundingBox[] = [];
+  const arrangedEntityNode = wrapNode(
+    notrans(),
+    ...engravedEntities.map((entityTree, index) => {
       const offsetX = slicesOffsetX[index];
-      return {
-        type: 'Node',
-        transform: moveRight(offsetX),
-        children: [entityTree],
-      };
-    }),
-  };
+      const entityNode = wrapNode(moveRight(offsetX), entityTree);
+      entityBoxes.push(getBoundingBox(entityNode, config));
+      return entityNode;
+    })
+  );
+  return { entityBoxes, arrangedEntityNode };
 }
 
 function layoutVoicesVertically(

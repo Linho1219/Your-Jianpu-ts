@@ -59,8 +59,6 @@ export type APManual = XY;
 
 export type Anchor = AnchorPosition | APManual;
 
-export type LayoutTree<T> = LayoutTreeNode<T> | LayoutTreeLeaf<T>;
-
 export type LayoutTreeNode<T> = {
   type: 'Node';
   transform: Transform;
@@ -74,6 +72,8 @@ export type LayoutTreeLeaf<T> = {
   object: T;
   remarks?: string;
 };
+
+export type LayoutTree<T> = LayoutTreeNode<T> | LayoutTreeLeaf<T>;
 
 export interface LayoutFlat<T> extends Array<DrawDirective<T>> {}
 

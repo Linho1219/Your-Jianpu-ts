@@ -95,7 +95,7 @@ const testMusic: Music = {
           duration: new Fraction(1, 4),
         },
         // |
-        { type: 'Tag', tag: Barline.BeginRepeat },
+        { type: 'Tag', tag: Barline.BarLine },
         // 6./
         {
           type: 'Event',
@@ -156,7 +156,7 @@ const testMusic: Music = {
           duration: new Fraction(1, 4),
         },
         // |
-        { type: 'Tag', tag: Barline.BeginEndRepeat },
+        { type: 'Tag', tag: Barline.BarLine },
         // 4/
         {
           type: 'Event',
@@ -332,36 +332,13 @@ const testMusic: Music = {
         { type: 'Tag', tag: Barline.EndSign },
       ],
       spans: IntervalMap.fromRecords([
-        [
-          { start: 5, end: 6 },
-          {
-            type: 'Beam',
-          },
-        ],
-        [
-          { start: 6, end: 6 },
-          {
-            type: 'Beam',
-          },
-        ],
-        [
-          { start: 9, end: 10 },
-          {
-            type: 'Beam',
-          },
-        ],
-        [
-          { start: 9, end: 10 },
-          {
-            type: 'Slur',
-          },
-        ],
-        [
-          { start: 15, end: 15 },
-          {
-            type: 'Beam',
-          },
-        ],
+        [{ start: 8, end: 9 }, { type: 'Beam' }],
+        [{ start: 9, end: 9 }, { type: 'Beam' }],
+        [{ start: 13, end: 14 }, { type: 'Beam' }],
+        [{ start: 13, end: 14 }, { type: 'Slur' }],
+        [{ start: 19, end: 20 }, { type: 'Slur' }],
+        [{ start: 14, end: 16 }, { type: 'Slur' }],
+        [{ start: 20, end: 20 }, { type: 'Beam' }],
       ]),
     },
     {
