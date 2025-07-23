@@ -3,6 +3,7 @@ import { RenderConfig } from '../../types/config';
 import {
   Anchor,
   LayoutTree,
+  LayoutTreeNode,
   moveLeft,
   moveRight,
   normAnchorPosition,
@@ -55,7 +56,7 @@ export function engraveNumber(
 export function wrapNode(
   transform: Transform,
   ...trees: LayoutTree<RenderObject>[]
-): LayoutTree<RenderObject> {
+): LayoutTreeNode<RenderObject> {
   return {
     type: 'Node',
     transform,

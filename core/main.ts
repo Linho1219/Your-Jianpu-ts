@@ -53,8 +53,8 @@ export function engraveMusic(
         const ele = lineElements[index];
         return !!ele && ele.type === 'Event';
       });
-      const engravedBeams = engraveBeams(filteredOffset, spans, config); // finished
-      const engravedSpans = engraveSpans(slicesOffsetX, spans, config);
+      const engravedBeams = engraveBeams(filteredOffset, spans, config);
+      const engravedSpans = engraveSpans(filteredOffset, spans, config);
       return {
         type: 'Node',
         transform: notrans(),

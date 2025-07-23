@@ -9,6 +9,7 @@ import {
   Glyph,
   whiteKeyToGlyph,
   scaleVrtcl,
+  LayoutTreeLeaf,
 } from '../../types/layout';
 import { RenderConfig } from '../../types/config';
 import { Event, Action, Accidental } from '../../types/basic';
@@ -45,7 +46,7 @@ function drawEvent(
 ): LayoutTree<RenderObject> {
   const { glyphHeight, repeater4Width, repeater4Height, lyricSize } = config;
   switch (event.type) {
-    case 'Action':
+    case 'Action': {
       const soundTree = drawSound(event.value, config);
       if (!event.value.symbols) return soundTree;
       const { top, left, topRight, bottomRight } = event.value.symbols;
@@ -108,6 +109,7 @@ function drawEvent(
         symbolTrees.push(...bottomRightSymbols);
       }
       return wrapNode(notrans(), soundTree, ...symbolTrees);
+    }
     case 'Repeater4':
       return wrapNode(moveUp(glyphHeight / 2), {
         type: 'Leaf',
@@ -118,12 +120,44 @@ function drawEvent(
           height: repeater4Height,
         },
       });
-    case 'MultiBarRest':
-      return {
-        type: 'Node',
-        transform: notrans(),
-        children: [], // TO-DO
+    case 'MultiBarRest': {
+      const { count } = event;
+      const hrztlBarThickness = config.smuflSize * 0.2;
+      const vrtclBarThickness = config.smuflSize * 0.05;
+      const vrtclBarLength = config.smuflSize * 0.5;
+      const textBottomMargin = config.smuflSize * 0.25;
+      const textSideMargin = config.smuflSize * 0.6;
+      const children: LayoutTree<RenderObject>[] = [];
+      const engravedText = engraveNumber(
+        count,
+        'timeSig',
+        config,
+        AnchorPosition.Bottom
+      );
+      children.push(wrapNode(moveUp(textBottomMargin), engravedText.node));
+      const hrztlBarLength = engravedText.metrics.width + textSideMargin * 2;
+      children.push({
+        type: 'Leaf',
+        anchor: AnchorPosition.Centre,
+        object: {
+          type: 'rectangle',
+          width: hrztlBarLength,
+          height: hrztlBarThickness,
+        },
+      });
+      const vrtclBar: LayoutTreeLeaf<RenderObject> = {
+        type: 'Leaf',
+        anchor: AnchorPosition.Centre,
+        object: {
+          type: 'rectangle',
+          width: vrtclBarThickness,
+          height: vrtclBarLength,
+        },
       };
+      children.push(wrapNode(moveRight(hrztlBarLength / 2), vrtclBar));
+      children.push(wrapNode(moveLeft(hrztlBarLength / 2), vrtclBar));
+      return wrapNode(moveUp(glyphHeight / 2), ...children);
+    }
     case 'Pronounce':
       // 文字
       return {

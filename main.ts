@@ -14,9 +14,21 @@ const testMusic: Music = {
       type: 'music',
       entities: [
         {
-          type:'Tag',
-          tag:'TimeSignature',
+          type: 'Tag',
+          tag: 'TimeSignature',
           value: [4, 4],
+        },
+        {
+          type: 'Event',
+          event: {
+            type: 'MultiBarRest',
+            count: 4,
+          },
+          duration: new Fraction(16, 4),
+        },
+        {
+          type: 'Tag',
+          tag: Barline.BarLine,
         },
         // 1
         {
@@ -84,28 +96,6 @@ const testMusic: Music = {
         },
         // |
         { type: 'Tag', tag: Barline.BeginRepeat },
-        // 6..//
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 2,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [
-                  { whiteKey: WhiteKey.K6, octaveTranspose: 1 },
-                  { whiteKey: WhiteKey.K1, octaveTranspose: -2 },
-                ],
-              },
-              symbols: {
-                top: ['articStaccatissimoAbove'],
-              },
-            },
-          },
-          duration: new Fraction(1, 16),
-        },
         // 6./
         {
           type: 'Event',
@@ -113,14 +103,14 @@ const testMusic: Music = {
             type: 'Action',
             value: {
               timeMultiplier: 1,
-              dot: 0,
+              dot: 1,
               sound: {
                 type: 'Note',
                 pitches: [{ whiteKey: WhiteKey.K6, octaveTranspose: -1 }],
               },
             },
           },
-          duration: new Fraction(1, 8),
+          duration: new Fraction(3, 16),
         },
         // 6''//
         {
@@ -149,6 +139,9 @@ const testMusic: Music = {
               sound: {
                 type: 'Note',
                 pitches: [{ whiteKey: WhiteKey.K5, octaveTranspose: 0 }],
+              },
+              symbols: {
+                bottomRight: ['tremolo3'],
               },
             },
           },
@@ -340,13 +333,7 @@ const testMusic: Music = {
       ],
       spans: IntervalMap.fromRecords([
         [
-          { start: 4, end: 6 },
-          {
-            type: 'Beam',
-          },
-        ],
-        [
-          { start: 4, end: 4 },
+          { start: 5, end: 6 },
           {
             type: 'Beam',
           },
@@ -364,6 +351,12 @@ const testMusic: Music = {
           },
         ],
         [
+          { start: 9, end: 10 },
+          {
+            type: 'Slur',
+          },
+        ],
+        [
           { start: 15, end: 15 },
           {
             type: 'Beam',
@@ -374,6 +367,13 @@ const testMusic: Music = {
     {
       type: 'lyric',
       entities: [
+        {
+          type: 'Event',
+          event: {
+            type: 'Pronounce',
+          },
+          duration: new Fraction(16, 4),
+        },
         // 1
         {
           type: 'Event',
@@ -427,18 +427,7 @@ const testMusic: Music = {
               content: '亮',
             },
           },
-          duration: new Fraction(1, 16),
-        },
-        // 6./
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '亮',
-            },
-          },
-          duration: new Fraction(1, 8),
+          duration: new Fraction(3, 16),
         },
         // 6''//
         {
