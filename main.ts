@@ -258,7 +258,7 @@ const testMusic: Music = {
           duration: new Fraction(1, 4),
         },
         // |
-        { type: 'Tag', tag: Tag.DoubleBarLine },
+        { type: 'Tag', tag: Tag.DashedBarLine },
         // 2*
         {
           type: 'Event',

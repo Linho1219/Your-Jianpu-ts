@@ -26,6 +26,7 @@ export type AbstractEntity = Entity | TagEntity;
 export enum Tag {
   TimeSignature = 'TimeSignature',
   BarLine = 'BarLine',
+  DashedBarLine = 'DashedBarLine',
   BeginEndRepeat = 'BeginEndRepeat',
   BeginRepeat = 'BeginRepeat',
   EndRepeat = 'EndRepeat',
@@ -121,7 +122,8 @@ export function tagLikeBarLine(tag: Tag): boolean {
     tag === Tag.BeginRepeat ||
     tag === Tag.EndRepeat ||
     tag === Tag.DoubleBarLine ||
-    tag === Tag.EndSign
+    tag === Tag.EndSign ||
+    tag === Tag.DashedBarLine
   );
 }
 

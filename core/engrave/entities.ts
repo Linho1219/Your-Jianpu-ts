@@ -371,6 +371,36 @@ function drawTag(tag: Tag, config: RenderConfig): LayoutTree<RenderObject> {
           ...barlinePadding,
         ],
       };
+    case Tag.DashedBarLine:
+      // 3 2 3 2 3 2 3 = 18
+      // ---  ---  ---  ---
+      const unit = barLineLength / 18;
+      const dashLength = unit * 3;
+      const gapLength = unit * 2;
+      const barlineChildren: LayoutTree<RenderObject>[] = [];
+      for (let i = 0; i < 4; i++) {
+        const offset = -barLineLength / 2 + i * (dashLength + gapLength);
+        barlineChildren.push({
+          type: 'Node',
+          transform: moveDown(offset),
+          children: [
+            {
+              type: 'Leaf',
+              anchor: AnchorPosition.Top,
+              object: {
+                type: 'rectangle',
+                width: barLineWidth,
+                height: dashLength,
+              },
+            },
+          ],
+        });
+      }
+      return {
+        type: 'Node',
+        transform: moveUp(glyphHeight / 2),
+        children: [...barlineChildren, ...barlinePadding],
+      };
     case Tag.DoubleBarLine:
       return {
         type: 'Node',
