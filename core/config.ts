@@ -26,7 +26,7 @@ export const renderConfig = fromRawRenderConfig({
   thickBarLineGap_barLineWidth: 3 / 2,
   slurHeight_glyphHeight: 1 / 2,
   slurPaddingX_glyphWidth: 1 / 8,
-  slurPaddingBottom_glyphHeight: 1 / 8,
+  slurPaddingBottom_glyphHeight: 1 / 4,
   lyricSize_glyphHeight: 4 / 5,
   lyricGap_lineGap: 1 / 4,
   chordGap_glyphHeight: 1 / 3,

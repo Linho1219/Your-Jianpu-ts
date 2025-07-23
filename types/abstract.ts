@@ -1,3 +1,4 @@
+import { SymbolName } from '../svg/defReg';
 import { Duration, Event } from './basic';
 
 /** 间隔范围 */
@@ -44,7 +45,7 @@ export type Span =
   | { type: 'TieInChord'; indices: number[] } // 和弦内延音线
   | { type: 'Tuplet'; value: number } // 多连音
   | { type: 'Beam' } // 减时线
-  | { type: 'Fermata' };
+  | { type: 'Symbol'; value: SymbolName };
 
 export enum Boundary {
   Closed = 'Closed',

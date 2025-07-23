@@ -335,10 +335,19 @@ const testMusic: Music = {
         [{ start: 8, end: 9 }, { type: 'Beam' }],
         [{ start: 9, end: 9 }, { type: 'Beam' }],
         [{ start: 13, end: 14 }, { type: 'Beam' }],
+        [{ start: 3, end: 4 }, { type: 'Slur' }],
         [{ start: 13, end: 14 }, { type: 'Slur' }],
         [{ start: 19, end: 20 }, { type: 'Slur' }],
         [{ start: 14, end: 16 }, { type: 'Slur' }],
         [{ start: 20, end: 20 }, { type: 'Beam' }],
+        [
+          { start: 3, end: 9 },
+          { type: 'Symbol', value: 'dynamicDiminuendoHairpin' },
+        ],
+        [
+          { start: 13, end: 16 },
+          { type: 'Symbol', value: 'dynamicCrescendoHairpin' },
+        ],
       ]),
     },
     {
