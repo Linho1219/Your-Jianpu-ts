@@ -8,6 +8,7 @@ import {
   notrans,
   Glyph,
   whiteKeyToGlyph,
+  scaleVrtcl,
 } from '../../types/layout';
 import { RenderConfig } from '../../types/config';
 import { Event, Action, Accidental } from '../../types/basic';
@@ -22,17 +23,13 @@ import { RenderObject, AnchorPosition } from '../../types/layout';
 import { SlicedEntity } from '../slice';
 import { getBoundingBox } from '../bounding';
 import { SymbolName } from '../../svg/defReg';
+import { engraveNumber, wrapNode } from './utils';
 
 function engraveSliceElement(
   element: SlicedEntity,
   config: RenderConfig
 ): LayoutTree<RenderObject> {
-  if (!element || element.type === 'PartialEvent')
-    return {
-      type: 'Node',
-      transform: notrans(),
-      children: [],
-    };
+  if (!element || element.type === 'PartialEvent') return wrapNode(notrans());
   if (element.type === 'Event') return drawEvent(element.event, config);
   if (element.type === 'Tag') return drawTag(element, config);
   throw new Error('Unknown SliceElement kind');
@@ -51,56 +48,76 @@ function drawEvent(
     case 'Action':
       const soundTree = drawSound(event.value, config);
       if (!event.value.symbols) return soundTree;
-      const { top, left, right } = event.value.symbols;
-      const soundBBox = getBoundingBox(soundTree, config, ['symbol']);
-      const [[ox1, oy1], [ox2, oy2]] = soundBBox!;
+      const { top, left, topRight, bottomRight } = event.value.symbols;
+      const [[_numberX1, numberY1], [numberX2]] = getBoundingBox(
+        soundTree,
+        config,
+        ['symbol', 'circle']
+      )!;
+      const [[_dottedX1, dottedY1], [dottedX2]] = getBoundingBox(
+        soundTree,
+        config,
+        ['symbol']
+      )!;
+      const [[fullX1, fullY1], [fullX2]] = getBoundingBox(soundTree, config)!;
       const symbolTrees: LayoutTree<RenderObject>[] = [];
       if (top) {
-        let currentY = oy1 - config.symbolYGap;
+        let currentY = dottedY1 - config.symbolYGap;
         const topSymbols: LayoutTree<RenderObject>[] = top.map((symbolName) => {
           const metrics = config.defReg.regAndGet(symbolName).metrics;
-          const symbolNode: LayoutTree<RenderObject> = {
-            type: 'Node',
-            transform: moveDown(currentY),
-            children: [
+          const symbolNode: LayoutTree<RenderObject> = wrapNode(
+            moveDown(currentY),
+            {
+              type: 'Leaf',
+              anchor: AnchorPosition.Bottom,
+              object: {
+                type: 'symbol',
+                value: symbolName,
+                width: metrics.width,
+                height: metrics.height,
+              },
+            }
+          );
+          currentY -= metrics.height + config.symbolYGap;
+          return symbolNode;
+        });
+        symbolTrees.push(...topSymbols);
+      }
+      if (bottomRight) {
+        let currentX = fullX2 + config.symbolXGap;
+        const bottomRightSymbols: LayoutTree<RenderObject>[] = bottomRight.map(
+          (symbolName) => {
+            const metrics = config.defReg.regAndGet(symbolName).metrics;
+            const symbolNode: LayoutTree<RenderObject> = wrapNode(
+              moveRight(currentX),
               {
                 type: 'Leaf',
-                anchor: AnchorPosition.Bottom,
+                anchor: AnchorPosition.BottomLeft,
                 object: {
                   type: 'symbol',
                   value: symbolName,
                   width: metrics.width,
                   height: metrics.height,
                 },
-              },
-            ],
-          };
-          currentY -= metrics.height + config.symbolYGap;
-          return symbolNode;
-        });
-        symbolTrees.push(...topSymbols);
+              }
+            );
+            currentX += metrics.width + config.symbolXGap;
+            return symbolNode;
+          }
+        );
+        symbolTrees.push(...bottomRightSymbols);
       }
-      return {
-        type: 'Node',
-        transform: notrans(),
-        children: [soundTree, ...symbolTrees],
-      };
+      return wrapNode(notrans(), soundTree, ...symbolTrees);
     case 'Repeater4':
-      return {
-        type: 'Node',
-        transform: moveUp(glyphHeight / 2),
-        children: [
-          {
-            type: 'Leaf',
-            anchor: AnchorPosition.Centre,
-            object: {
-              type: 'rectangle',
-              width: repeater4Width,
-              height: repeater4Height,
-            },
-          },
-        ],
-      };
+      return wrapNode(moveUp(glyphHeight / 2), {
+        type: 'Leaf',
+        anchor: AnchorPosition.Centre,
+        object: {
+          type: 'rectangle',
+          width: repeater4Width,
+          height: repeater4Height,
+        },
+      });
     case 'MultiBarRest':
       return {
         type: 'Node',
@@ -234,11 +251,7 @@ function drawSound(
     const glyph = action.sound.type === 'Clap' ? Glyph.GX : Glyph.G0;
     const children = [getGlyph(glyph)];
     if (action.dot) children.push(getAsideDots(action.dot));
-    return {
-      type: 'Node',
-      transform: notrans(),
-      children,
-    };
+    return wrapNode(notrans(), ...children);
   } else if (action.sound.type === 'Note') {
     const isChord = action.sound.pitches.length > 1;
     const scaleY = isChord ? config.chordYscale : 1;
@@ -250,16 +263,7 @@ function drawSound(
       .map((pitch, index) => {
         const glyph = getGlyph(whiteKeyToGlyph(pitch.whiteKey));
         const children: LayoutTree<RenderObject>[] = [
-          isChord
-            ? {
-                type: 'Node',
-                transform: {
-                  localPosition: [0, 0],
-                  localScale: [1, config.chordYscale],
-                },
-                children: [glyph],
-              }
-            : glyph,
+          isChord ? wrapNode(scaleVrtcl(config.chordYscale), glyph) : glyph,
         ];
         if (pitch.accidental)
           children.push(getAccidental(pitch.accidental, scaleY));
@@ -311,56 +315,26 @@ function drawTag(
         },
         children,
       };
-      const renderedSeries = entity.value
-        .map((num) => {
-          const glyphs: SymbolName[] = [];
-          while (num > 0) {
-            const currDigit = num % 10;
-            num = Math.floor(num / 10);
-            glyphs.push(`timeSig${currDigit}` as SymbolName);
-          }
-          return glyphs.reverse();
-        })
-        .map((glyphs) => glyphs.map((glyph) => config.defReg.regAndGet(glyph)))
-        .map((extractedSymbols, index) => {
-          let currentX = 0;
-          const numberSerie: LayoutTree<RenderObject>[] = extractedSymbols.map(
-            (symbol) => {
-              const node: LayoutTree<RenderObject> = {
-                type: 'Node',
-                transform: moveRight(currentX),
-                children: [
-                  {
-                    type: 'Leaf',
-                    anchor: !index
-                      ? AnchorPosition.BottomLeft
-                      : AnchorPosition.TopLeft,
-                    object: {
-                      type: 'symbol',
-                      value: symbol.name,
-                      width: symbol.metrics.width,
-                      height: symbol.metrics.height,
-                    },
-                  },
-                ],
-              };
-              currentX += symbol.metrics.width;
-              return node;
-            }
-          );
-          const numbersNode: LayoutTree<RenderObject> = {
-            type: 'Node',
-            transform: move(
-              -currentX / 2,
-              !index ? -config.beamGap : +config.beamGap
-            ),
-            children: numberSerie,
-          };
-          return { numbersNode, width: currentX };
-        });
+      const [numerator, denominator] = entity.value;
+      const numeratorResult = engraveNumber(
+        numerator,
+        'timeSig',
+        config,
+        AnchorPosition.Bottom
+      );
+      const denominatorResult = engraveNumber(
+        denominator,
+        'timeSig',
+        config,
+        AnchorPosition.Top
+      );
+      children.push(wrapNode(moveUp(config.beamGap), numeratorResult.node));
+      children.push(wrapNode(moveDown(config.beamGap), denominatorResult.node));
       const maxWidth =
-        Math.max(...renderedSeries.map(({ width }) => width)) * 1.2;
-      children.push(...renderedSeries.map(({ numbersNode }) => numbersNode));
+        Math.max(
+          numeratorResult.metrics.width,
+          denominatorResult.metrics.width
+        ) * 1.2;
       children.push({
         type: 'Leaf',
         anchor: AnchorPosition.Centre,
@@ -370,36 +344,28 @@ function drawTag(
           height: config.barLineWidth,
         },
       });
-      children.push({
-        type: 'Node',
-        transform: notrans(),
-        children: [
-          {
-            type: 'Leaf',
-            anchor: AnchorPosition.Right,
-            object: {
-              type: 'invisible-rectangle',
-              width: config.timeSignatureLeftPadding,
-              height: config.barLineLength,
-            },
+      children.push(
+        wrapNode(notrans(), {
+          type: 'Leaf',
+          anchor: AnchorPosition.Right,
+          object: {
+            type: 'invisible-rectangle',
+            width: config.timeSignatureLeftPadding,
+            height: 0,
           },
-        ],
-      });
-      children.push({
-        type: 'Node',
-        transform: notrans(),
-        children: [
-          {
-            type: 'Leaf',
-            anchor: AnchorPosition.Left,
-            object: {
-              type: 'invisible-rectangle',
-              width: config.timeSignatureRightPadding,
-              height: config.barLineLength,
-            },
+        })
+      );
+      children.push(
+        wrapNode(notrans(), {
+          type: 'Leaf',
+          anchor: AnchorPosition.Left,
+          object: {
+            type: 'invisible-rectangle',
+            width: config.timeSignatureRightPadding,
+            height: 0,
           },
-        ],
-      });
+        })
+      );
       return node;
     }
     default:

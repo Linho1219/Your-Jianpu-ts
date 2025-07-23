@@ -55,12 +55,9 @@ export enum AnchorPosition {
   AP, // arbitrary (0~1, 0~1)，单独用一个结构体代替
 }
 
-export interface APArbitrary {
-  type: AnchorPosition.AP;
-  pos: XY;
-}
+export type APManual = XY;
 
-export type Anchor = AnchorPosition | APArbitrary;
+export type Anchor = AnchorPosition | APManual;
 
 export type LayoutTree<T> =
   | { type: 'Leaf'; anchor: Anchor; object: T; remarks?: string }
@@ -100,7 +97,7 @@ export function normAnchorPosition(anchor: Anchor): XY {
         throw new Error(`Unknown anchor position: ${anchor}`);
     }
   } else {
-    return anchor.pos;
+    return anchor;
   }
 }
 
@@ -127,3 +124,10 @@ export const moveUp = (dy: number) => move(0, -dy);
 export const moveDown = (dy: number) => move(0, dy);
 export const moveLeft = (dx: number) => move(-dx, 0);
 export const moveRight = (dx: number) => move(dx, 0);
+
+export const scale = (sx: number, sy: number): Transform => ({
+  localPosition: [0, 0],
+  localScale: [sx, sy],
+});
+export const scaleHrztl = (sx: number): Transform => scale(sx, 1);
+export const scaleVrtcl = (sy: number): Transform => scale(1, sy);

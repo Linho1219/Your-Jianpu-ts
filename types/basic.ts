@@ -17,7 +17,8 @@ export interface Action {
   symbols?: {
     top?: SymbolName[];
     left?: SymbolName[];
-    right?: SymbolName[];
+    topRight?: SymbolName[];
+    bottomRight?: SymbolName[];
   };
 }
 
