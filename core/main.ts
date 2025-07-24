@@ -1,5 +1,5 @@
 import { zip } from 'lodash-es';
-import { Music } from '../types/abstract';
+import { IntervalMap, Music } from '../types/abstract';
 import { SlicedEntity, sliceMusic } from './slice';
 import { engraveSliceElementWithCfg } from './engrave/entities';
 import { getBoundingBox, getBoundingBoxWithCfg } from './bounding';
@@ -28,6 +28,44 @@ export function engraveMusic(
   const elementsByLine = zip(
     ...slices.map((slice) => slice.entities)
   ) as SlicedEntity[][];
+  /** original -> slice */
+  const indexMaps: Map<number, number>[] = music.voices.map(
+    ({ entities: originalEntities }, index) => {
+      const sliceLine = elementsByLine[index];
+      const old2new = new Map<number, number>();
+      let newIndex = 0;
+      originalEntities.forEach((originalEntity, originalIndex) => {
+        while (
+          newIndex < sliceLine.length &&
+          sliceLine[newIndex] !== originalEntity
+        )
+          newIndex++;
+        if (newIndex >= sliceLine.length)
+          throw new Error('Invalid index mapping');
+        old2new.set(originalIndex, newIndex);
+        newIndex++;
+      });
+      return old2new;
+    }
+  );
+  const throwErr = (msg: string): never => {
+    throw new Error(msg);
+  };
+  const mappedSpans = music.voices.map(({ spans }, voiceIndex) =>
+    IntervalMap.fromRecords(
+      spans.entries().map(([interval, span]) => [
+        {
+          start:
+            indexMaps[voiceIndex].get(interval.start) ??
+            throwErr('Invalid start index ' + interval.start),
+          end:
+            indexMaps[voiceIndex].get(interval.end) ??
+            throwErr('Invalid end index ' + interval.end),
+        },
+        span,
+      ])
+    )
+  );
 
   const engravedElementsByLine = elementsByLine.map((line) =>
     line.map(engraveSliceElementWithCfg(config))
@@ -44,7 +82,7 @@ export function engraveMusic(
   const engravedVoices: LayoutTree<RenderObject>[] = elementsByLine.map(
     (lineElements, voiceIndex) => {
       const voice = music.voices[voiceIndex];
-      const spans = voice.spans;
+      const spans = mappedSpans[voiceIndex];
       const { arrangedEntityNode, entityBoxes } = arrangeBaseNotes(
         slicesOffsetX,
         engravedElementsByLine[voiceIndex],

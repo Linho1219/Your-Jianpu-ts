@@ -172,7 +172,7 @@ function sliceVoices(entitiesOfVoices: AbstractEntity[][]): {
 
 export function sliceMusic(music: Music) {
   const { voices } = music;
-  const entitiesOfVoices = voices.map((voice) => voice.entities);
+  const entitiesOfVoices = voices.map((voice) => [...voice.entities]);
   const spansOfVoices = voices.map((voice) => voice.spans);
 
   const { slicedUnits, slicedVoices } = sliceVoices(entitiesOfVoices);
