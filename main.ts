@@ -90,10 +90,10 @@ const giveLrc = (
   duration,
 });
 
-const giveBeam = (from: number, to: number): [Interval, Span] => [
-  { start: from, end: to },
-  { type: 'Beam' },
-];
+const giveBeam = (from: number, to: number): Interval => ({
+  start: from,
+  end: to,
+});
 
 const giveSlur = (from: number, to: number): [Interval, Span] => [
   { start: from, end: to },
@@ -152,12 +152,10 @@ const testMusic: Music = {
         giveRep4(),
         giveBarline(Barline.DoubleBarLine),
       ],
-      spans: IntervalMap.fromRecords([
+      beams: [
         giveBeam(0, 2),
-        giveTuplet(0, 2, 3),
         giveBeam(4, 5),
         giveBeam(6, 8),
-        giveTuplet(6, 8, 3),
         giveBeam(9, 10),
         giveBeam(11, 12),
         giveBeam(14, 16),
@@ -167,8 +165,12 @@ const testMusic: Music = {
         giveBeam(20, 21),
         giveBeam(24, 26),
         giveBeam(25, 26),
-        giveSlur(26, 27),
         giveBeam(28, 29),
+      ],
+      spans: IntervalMap.fromRecords([
+        giveTuplet(0, 2, 3),
+        giveTuplet(6, 8, 3),
+        giveSlur(26, 27),
       ]) as Spans,
     },
     {
@@ -204,6 +206,7 @@ const testMusic: Music = {
         giveLrc('啊'),
       ],
       spans: new IntervalMap<Span>(),
+      beams: [],
     },
     {
       type: 'music',
@@ -231,12 +234,8 @@ const testMusic: Music = {
         giveRep4(),
         giveBarline(Barline.DoubleBarLine),
       ],
-      spans: IntervalMap.fromRecords([
-        giveSlur(12, 13),
-        giveBeam(13, 14),
-        giveBeam(14, 14),
-        giveSlur(14, 15),
-      ]),
+      beams: [giveBeam(13, 14), giveBeam(14, 14)],
+      spans: IntervalMap.fromRecords([giveSlur(12, 13), giveSlur(14, 15)]),
     },
     {
       type: 'lyric',
@@ -257,6 +256,7 @@ const testMusic: Music = {
         giveLrc('呜', 0, 0, ud),
         giveLrc('啊', 0, 0, ud),
       ],
+      beams: [],
       spans: new IntervalMap<Span>(),
     },
     {
@@ -285,12 +285,8 @@ const testMusic: Music = {
         giveRep4(),
         giveBarline(Barline.DoubleBarLine),
       ],
-      spans: IntervalMap.fromRecords([
-        giveSlur(12, 13),
-        giveBeam(13, 14),
-        giveBeam(14, 14),
-        giveSlur(14, 15),
-      ]),
+      beams: [giveBeam(13, 14), giveBeam(14, 14)],
+      spans: IntervalMap.fromRecords([giveSlur(12, 13), giveSlur(14, 15)]),
     },
     {
       type: 'lyric',
@@ -312,7 +308,17 @@ const testMusic: Music = {
         giveLrc('啊', 0, 0, ud),
       ],
       spans: new IntervalMap<Span>(),
+      beams: [],
     },
+    {
+      type:'music',
+      entities:[
+        giveNote(1,0,1),
+        giveNote(1,0,1),
+      ],
+      beams:[giveBeam(0,1)],
+      spans: new IntervalMap<Span>(),
+    }
   ],
 };
 

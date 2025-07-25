@@ -1,4 +1,4 @@
-import { Spans } from '../../types/abstract';
+import { Interval, Spans } from '../../types/abstract';
 import { RenderConfig } from '../../types/config';
 import {
   AnchorPosition,
@@ -10,16 +10,13 @@ import {
 
 export function engraveBeams(
   filteredOffset: number[],
-  spans: Spans,
+  beamIntvls: Interval[],
   config: RenderConfig
 ): LayoutTree<RenderObject> {
   const { beamGap, beamHeight, glyphWidth } = config;
   /** 当前存在的 beam 的结束位置，栈结构 */
   const currBeamEnds: number[] = [];
-  const beams = spans
-    .entries()
-    .filter(([_, span]) => span.type === 'Beam')
-    .map(([interval]) => interval)
+  const beams = beamIntvls
     .sort(({ start: a }, { start: b }) => a - b) // 按照开始位置升序
     .map((interval) => {
       while (currBeamEnds.length && currBeamEnds.at(-1)! < interval.start)

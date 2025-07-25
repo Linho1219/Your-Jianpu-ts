@@ -10,7 +10,7 @@ import {
 
 //#region 工具函数
 
-function bboxUnion(a: BoundingBox, b: BoundingBox): BoundingBox {
+export function bboxUnion(a: BoundingBox, b: BoundingBox): BoundingBox {
   if (!a) return b;
   if (!b) return a;
   const [[ax1, ay1], [ax2, ay2]] = a;

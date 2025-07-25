@@ -138,3 +138,22 @@ export const scale = (sx: number, sy: number): Transform => ({
 });
 export const scaleHrztl = (sx: number): Transform => scale(sx, 1);
 export const scaleVrtcl = (sy: number): Transform => scale(1, sy);
+
+export function getBoxSize(box: BoundingBox): Size {
+  if (!box) return [0, 0];
+  const [[x1, y1], [x2, y2]] = box;
+  return [x2 - x1, y2 - y1];
+}
+export function getBoxWidth(box: BoundingBox): number {
+  if (!box) return 0;
+  const [[x1, _y1], [x2, _y2]] = box;
+  return x2 - x1;
+}
+export function getBoxHeight(box: BoundingBox): number {
+  if (!box) return 0;
+  const [[_x1, y1], [_x2, y2]] = box;
+  return y2 - y1;
+}
+export function emptyBox(): BBox {
+  return [[0, 0], [0, 0]];
+}

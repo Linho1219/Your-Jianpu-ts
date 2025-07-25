@@ -44,7 +44,7 @@ export type Span =
   | { type: 'Tie' } // 延音线
   | { type: 'TieInChord'; indices: number[] } // 和弦内延音线
   | { type: 'Tuplet'; value: number } // 多连音
-  | { type: 'Beam' } // 减时线
+  // | { type: 'Beam' } // 减时线
   | { type: 'Symbol'; value: SymbolName };
 
 export enum Boundary {
@@ -98,6 +98,8 @@ export interface Voice {
   type: 'music' | 'lyric';
   /** 顺序排列的符号实体 */
   entities: AbstractEntity[];
+  /** 减时线 */
+  beams: Interval[];
   /** 跨越多个音符的装饰结构 */
   spans: Spans;
 }
