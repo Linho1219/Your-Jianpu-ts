@@ -2,6 +2,14 @@ import { SlicedMusic } from './slice';
 import { BoundingBox, emptyBox, getBoxWidth } from '../types/layout';
 import { zip } from 'lodash-es';
 
+const tagWeight = 7;
+function getWeightsFromBeamCounts(counts: number[]): number {
+  const maxCount = Math.max(...counts);
+  if (maxCount === 0) return 7; // 没有减时线的
+  if (maxCount === 1) return 3; // 有减时线的
+  return 1; // 有减时线的
+}
+
 export function computeSliceOffsets(
   sliceMusic: SlicedMusic,
   boxesBySlice: BoundingBox[],
@@ -37,9 +45,8 @@ export function computeSliceOffsets(
   const gapWeights = sliceGapBeamCounts.map(getWeightsFromBeamCounts);
   sliceMusic.voices[0].entities.forEach((entity, index) => {
     if (!entity || entity.type === 'Tag') {
-      // 前后都没有实体的 gap 不需要间隔
-      gapWeights[index] = 0;
-      if (index) gapWeights[index - 1] = 0;
+      gapWeights[index] = tagWeight;
+      if (index) gapWeights[index - 1] = tagWeight;
     }
   });
   const totalGapWeight = gapWeights.reduce((sum, w) => sum + w, 0);
@@ -54,11 +61,4 @@ export function computeSliceOffsets(
     return offsetX;
   });
   return offsets;
-}
-
-function getWeightsFromBeamCounts(counts: number[]): number {
-  const maxCount = Math.max(...counts);
-  if (maxCount === 0) return 5; // 没有减时线的
-  if (maxCount === 1) return 3; // 有减时线的
-  return 2; // 有减时线的
 }

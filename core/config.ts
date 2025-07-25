@@ -2,7 +2,7 @@ import { fromRawRenderConfig } from '../types/config';
 
 export const renderConfig = fromRawRenderConfig({
   pageHeight: 2828.4,
-  lineWidth: 1400,
+  lineWidth: 1500,
   lineGap: 30,
   smuflSize: 36,
   glyphHeight: 30,
@@ -20,8 +20,8 @@ export const renderConfig = fromRawRenderConfig({
   symbolYGap_glyphHeight: 1 / 4,
   barLineLength_glyphHeight: 3 / 2,
   barLineWidth_glyphWidth: 1 / 10,
-  barLineLeftPadding_glyphWidth: 3 / 2,
-  barLineRightPadding_glyphWidth: 3 / 2,
+  barLineLeftPadding_glyphWidth: 1 / 2,
+  barLineRightPadding_glyphWidth: 1 / 2,
   thickBarLineWidth_barLineWidth: 5 / 2,
   thickBarLineGap_barLineWidth: 3 / 2,
   slurHeight_glyphHeight: 1 / 2,

@@ -26,12 +26,37 @@ import { getBoundingBox } from '../bounding';
 import { SymbolName } from '../../svg/defReg';
 import { engraveNumber, wrapNode } from './utils';
 
+interface EntityNonIntrusive {
+  fullY: number;
+  topY: number;
+  topleftX: number;
+  toprightX: number;
+  bottomLeftX: number;
+  bottomRightX: number;
+}
+
+interface NodeWithNonIntrusive {
+  node: LayoutTree<RenderObject>;
+  nonIntrusive: EntityNonIntrusive;
+}
+
+const getBasicNonIntrusive = (config: RenderConfig) => {
+  return {
+    fullY: -config.glyphHeight,
+    topY: -config.glyphHeight,
+    topleftX: -config.glyphWidth / 2,
+    toprightX: config.glyphWidth / 2,
+    bottomLeftX: -config.glyphWidth / 2,
+    bottomRightX: config.glyphWidth / 2,
+  };
+};
+
 function engraveSliceElement(
   element: SlicedEntity,
   config: RenderConfig
 ): LayoutTree<RenderObject> {
   if (!element || element.type === 'PartialEvent') return wrapNode(notrans());
-  if (element.type === 'Event') return drawEvent(element.event, config);
+  if (element.type === 'Event') return drawEvent(element.event, config).node;
   if (element.type === 'Tag') return drawTag(element, config);
   throw new Error('Unknown SliceElement kind');
 }
@@ -40,31 +65,18 @@ export const engraveSliceElementWithCfg =
   (config: RenderConfig) => (element: SlicedEntity) =>
     engraveSliceElement(element, config);
 
-function drawEvent(
-  event: Event,
-  config: RenderConfig
-): LayoutTree<RenderObject> {
+function drawEvent(event: Event, config: RenderConfig): NodeWithNonIntrusive {
   const { glyphHeight, repeater4Width, repeater4Height, lyricSize } = config;
   switch (event.type) {
     case 'Action': {
-      const soundTree = drawSound(event.value, config);
-      if (!event.value.symbols) return soundTree;
+      const { node: soundTree, nonIntrusive } = drawSound(event.value, config);
+      if (!event.value.symbols) return { node: soundTree, nonIntrusive };
       const { top, left, topRight, bottomRight } = event.value.symbols;
-      const [[_numberX1, numberY1], [numberX2]] = getBoundingBox(
-        soundTree,
-        config,
-        ['symbol', 'circle']
-      )!;
-      const [[_dottedX1, dottedY1], [dottedX2]] = getBoundingBox(
-        soundTree,
-        config,
-        ['symbol']
-      )!;
-      const [[fullX1, fullY1], [fullX2]] = getBoundingBox(soundTree, config)!;
       const symbolTrees: LayoutTree<RenderObject>[] = [];
       if (top) {
-        let currentY = dottedY1 - config.symbolYGap;
+        let currentY = nonIntrusive.topY;
         const topSymbols: LayoutTree<RenderObject>[] = top.map((symbolName) => {
+          currentY -= config.symbolYGap;
           const metrics = config.defReg.regAndGet(symbolName).metrics;
           const symbolNode: LayoutTree<RenderObject> = wrapNode(
             moveDown(currentY),
@@ -79,15 +91,17 @@ function drawEvent(
               },
             }
           );
-          currentY -= metrics.height + config.symbolYGap;
+          currentY -= metrics.height;
           return symbolNode;
         });
+        nonIntrusive.topY = currentY;
         symbolTrees.push(...topSymbols);
       }
       if (bottomRight) {
-        let currentX = fullX2 + config.symbolXGap;
+        let currentX = nonIntrusive.bottomRightX;
         const bottomRightSymbols: LayoutTree<RenderObject>[] = bottomRight.map(
           (symbolName) => {
+            currentX += config.symbolXGap;
             const metrics = config.defReg.regAndGet(symbolName).metrics;
             const symbolNode: LayoutTree<RenderObject> = wrapNode(
               moveRight(currentX),
@@ -102,24 +116,32 @@ function drawEvent(
                 },
               }
             );
-            currentX += metrics.width + config.symbolXGap;
+            currentX += metrics.width;
             return symbolNode;
           }
         );
+        nonIntrusive.bottomRightX = currentX;
         symbolTrees.push(...bottomRightSymbols);
       }
-      return wrapNode(notrans(), soundTree, ...symbolTrees);
+      // TODO: left, topRight
+      return {
+        node: wrapNode(notrans(), soundTree, ...symbolTrees),
+        nonIntrusive,
+      };
     }
     case 'Repeater4':
-      return wrapNode(moveUp(glyphHeight / 2), {
-        type: 'Leaf',
-        anchor: AnchorPosition.Centre,
-        object: {
-          type: 'rectangle',
-          width: repeater4Width,
-          height: repeater4Height,
-        },
-      });
+      return {
+        node: wrapNode(moveUp(glyphHeight / 2), {
+          type: 'Leaf',
+          anchor: AnchorPosition.Centre,
+          object: {
+            type: 'rectangle',
+            width: repeater4Width,
+            height: repeater4Height,
+          },
+        }),
+        nonIntrusive: getBasicNonIntrusive(config),
+      };
     case 'MultiBarRest': {
       const { count } = event;
       const hrztlBarThickness = config.smuflSize * 0.2;
@@ -156,27 +178,47 @@ function drawEvent(
       };
       children.push(wrapNode(moveRight(hrztlBarLength / 2), vrtclBar));
       children.push(wrapNode(moveLeft(hrztlBarLength / 2), vrtclBar));
-      return wrapNode(moveUp(glyphHeight / 2), ...children);
+      const node = wrapNode(moveUp(glyphHeight / 2), ...children);
+      const [[x1, y1], [x2]] = getBoundingBox(node, config)!;
+      return {
+        node,
+        nonIntrusive: {
+          topY: y1,
+          fullY: y1,
+          topleftX: x1,
+          toprightX: x2,
+          bottomLeftX: x1,
+          bottomRightX: x2,
+        },
+      };
     }
     case 'Pronounce':
       // 文字
       return {
-        type: 'Leaf',
-        anchor: AnchorPosition.Bottom,
-        object: {
-          type: 'text',
-          size: lyricSize,
-          align: 'center',
-          content: event.syllable?.content || '',
+        // TODO
+        node: {
+          type: 'Leaf',
+          anchor: AnchorPosition.Bottom,
+          object: {
+            type: 'text',
+            size: lyricSize,
+            align: 'center',
+            content: event.syllable?.content || '',
+          },
+        },
+        nonIntrusive: {
+          topY: -lyricSize,
+          fullY: -lyricSize,
+          topleftX: 0,
+          toprightX: 0,
+          bottomLeftX: 0,
+          bottomRightX: 0,
         },
       };
   }
 }
 
-function drawSound(
-  action: Action,
-  config: RenderConfig
-): LayoutTree<RenderObject> {
+function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
   const {
     dotGap,
     dotRadius,
@@ -284,51 +326,90 @@ function drawSound(
   if (action.sound.type === 'Rest' || action.sound.type === 'Clap') {
     const glyph = action.sound.type === 'Clap' ? Glyph.GX : Glyph.G0;
     const children = [getGlyph(glyph)];
+
     if (action.dot) children.push(getAsideDots(action.dot));
-    return wrapNode(notrans(), ...children);
+
+    const node = wrapNode(notrans(), ...children);
+
+    const [[_, y1], [x2]] = getBoundingBox(node, config)!;
+    const nonIntrusive: EntityNonIntrusive = {
+      fullY: y1,
+      topY: y1,
+      topleftX: -config.glyphWidth / 2,
+      toprightX: config.glyphWidth / 2,
+      bottomLeftX: -config.glyphWidth / 2,
+      bottomRightX: x2,
+    };
+
+    return { node, nonIntrusive };
   } else if (action.sound.type === 'Note') {
     const isChord = action.sound.pitches.length > 1;
     const scaleY = isChord ? config.chordYscale : 1;
+
     const rootChildren: LayoutTree<RenderObject>[] = [];
-    if (action.dot) rootChildren.push(getAsideDots(action.dot));
+
+    const nonIntrusive: EntityNonIntrusive = {
+      fullY: 0,
+      topY: 0,
+      topleftX: -config.glyphWidth / 2,
+      toprightX: config.glyphWidth / 2,
+      bottomLeftX: -config.glyphWidth / 2,
+      bottomRightX: config.glyphWidth / 2,
+    };
+
+    if (action.dot) {
+      const dots = getAsideDots(action.dot);
+      const [_, [x2]] = getBoundingBox(dots, config)!;
+      nonIntrusive.bottomRightX = x2;
+      rootChildren.push(dots);
+    }
+
     let currentY = 0;
     const pitchNodes: LayoutTree<RenderObject>[] = action.sound.pitches
       .reverse()
       .map((pitch, index) => {
+        if (index) currentY -= config.chordGap;
         const glyph = getGlyph(whiteKeyToGlyph(pitch.whiteKey));
         const children: LayoutTree<RenderObject>[] = [
           isChord ? wrapNode(scaleVrtcl(config.chordYscale), glyph) : glyph,
         ];
-        if (pitch.accidental)
-          children.push(getAccidental(pitch.accidental, scaleY));
-        if (pitch.octaveTranspose > 0) {
-          children.push(getTransposeDots(pitch.octaveTranspose, 'up', scaleY));
+
+        if (pitch.accidental) {
+          const accidental = getAccidental(pitch.accidental, scaleY);
+          const [[x1]] = getBoundingBox(accidental, config)!;
+          nonIntrusive.topleftX = Math.min(nonIntrusive.topleftX, x1);
+          children.push(accidental);
         }
+
         if (pitch.octaveTranspose < 0) {
-          children.push(
-            getTransposeDots(-pitch.octaveTranspose, 'down', scaleY, !!index)
+          const dots = getTransposeDots(
+            -pitch.octaveTranspose,
+            'down',
+            scaleY,
+            !!index
           );
+          const [_, [__, y2]] = getBoundingBox(dots, config)!;
+          if (index) currentY -= -y2; // 下加点侵入下方音符，需上移
+          nonIntrusive.topY = currentY - glyphHeight * scaleY;
+          children.push(dots);
+        } else if (pitch.octaveTranspose > 0) {
+          const dots = getTransposeDots(pitch.octaveTranspose, 'up', scaleY);
+          const [[_, y1]] = getBoundingBox(dots, config)!;
+          nonIntrusive.topY = currentY - y1;
+          children.push(dots);
+        } else {
+          nonIntrusive.topY = currentY - glyphHeight * scaleY;
         }
-        const tree: LayoutTree<RenderObject> = {
-          type: 'Node',
-          transform: moveDown(currentY),
-          children,
-        };
-        const [[_x1, y1], [_x2, y2]] = getBoundingBox(tree, config)!;
-        const paddingBottom = y2 - currentY;
-        if (index && paddingBottom > 0) {
-          tree.transform = moveDown(currentY - paddingBottom);
-          currentY = y1 - paddingBottom - config.chordGap;
-        } else currentY = y1 - config.chordGap;
+
+        const tree = wrapNode(moveDown(currentY), ...children);
+        const [[_, y1]] = getBoundingBox(tree, config)!;
+        currentY = nonIntrusive.fullY = y1;
         return tree;
       });
-    if (pitchNodes.length === 1 && pitchNodes[0].type === 'Node')
-      rootChildren.push(...pitchNodes[0].children);
-    else rootChildren.push(...pitchNodes);
+    rootChildren.push(...pitchNodes);
     return {
-      type: 'Node',
-      transform: notrans(),
-      children: rootChildren,
+      node: wrapNode(notrans(), ...rootChildren),
+      nonIntrusive,
     };
   } else throw new Error(`Unknown sound type`);
 }

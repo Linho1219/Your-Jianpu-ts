@@ -310,15 +310,15 @@ const testMusic: Music = {
       spans: new IntervalMap<Span>(),
       beams: [],
     },
-    {
-      type:'music',
-      entities:[
-        giveNote(1,0,1),
-        giveNote(1,0,1),
-      ],
-      beams:[giveBeam(0,1)],
-      spans: new IntervalMap<Span>(),
-    }
+    // {
+    //   type:'music',
+    //   entities:[
+    //     giveNote(1,0,1),
+    //     giveNote(1,0,1),
+    //   ],
+    //   beams:[giveBeam(0,1)],
+    //   spans: new IntervalMap<Span>(),
+    // }
   ],
 };
 
