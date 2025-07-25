@@ -104,6 +104,15 @@ export interface Voice {
 
 export interface Music {
   voices: Voice[];
+  accolade:
+    | null
+    | [
+        {
+          type: 'Bracket' | 'Brace';
+          range: Interval;
+        }
+      ];
+  captions: null | string[];
 }
 
 // utils

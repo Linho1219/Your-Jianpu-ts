@@ -1,6 +1,14 @@
 import Fraction from 'fraction.js';
-import { IntervalMap, Music, Barline } from './types/abstract';
-import { Accidental, WhiteKey } from './types/basic';
+import {
+  IntervalMap,
+  Music,
+  Barline,
+  Entity,
+  Spans,
+  Interval,
+  Span,
+} from './types/abstract';
+import { Accidental, Action, WhiteKey } from './types/basic';
 import { engraveMusic } from './core/main';
 import { renderConfig } from './core/config';
 import { flattenLayoutTree } from './core/flatten';
@@ -8,579 +16,302 @@ import fs from 'node:fs';
 import { renderSVG } from './svg/render';
 import { getBoundingBox } from './core/bounding';
 
+const ud = undefined;
+
+const toDuration = (timeMultiplier: number, dot: number): Fraction =>
+  new Fraction(1, 4 * 2 ** timeMultiplier).mul(dot ? new Fraction(3, 2) : 1);
+
+const giveBarline = (barline: Barline = Barline.BarLine) => ({
+  type: 'Tag' as const,
+  tag: barline,
+});
+
+const giveRep4 = (): Entity => ({
+  type: 'Event',
+  event: {
+    type: 'Repeater4',
+  },
+  duration: new Fraction(1, 4),
+});
+
+const giveNote = (
+  key: number,
+  octaveTranspose = 0,
+  timeMultiplier = 0,
+  dot = 0,
+  duration: Fraction = toDuration(timeMultiplier, dot),
+  accidental?: Accidental,
+  symbols?: Action['symbols']
+): Entity => ({
+  type: 'Event',
+  event: {
+    type: 'Action',
+    value: {
+      timeMultiplier,
+      dot,
+      sound: {
+        type: 'Note',
+        pitches: [{ whiteKey: key, octaveTranspose, accidental }],
+      },
+      symbols,
+    },
+  },
+  duration,
+});
+
+const giveRest = (timeMultiplier = 0, dot = 0): Entity => ({
+  type: 'Event',
+  event: {
+    type: 'Action',
+    value: {
+      timeMultiplier,
+      dot,
+      sound: {
+        type: 'Rest',
+      },
+    },
+  },
+  duration: toDuration(timeMultiplier, dot),
+});
+
+const giveLrc = (
+  content: string,
+  timeMultiplier = 0,
+  dot = 0,
+  duration: Fraction = toDuration(timeMultiplier, dot)
+): Entity => ({
+  type: 'Event',
+  event: {
+    type: 'Pronounce',
+    syllable: {
+      content,
+    },
+  },
+  duration,
+});
+
+const giveBeam = (from: number, to: number): [Interval, Span] => [
+  { start: from, end: to },
+  { type: 'Beam' },
+];
+
+const giveSlur = (from: number, to: number): [Interval, Span] => [
+  { start: from, end: to },
+  { type: 'Slur' },
+];
+
+const giveTuplet = (
+  from: number,
+  to: number,
+  value: number
+): [Interval, Span] => [
+  { start: from, end: to },
+  { type: 'Tuplet', value },
+];
+
 const testMusic: Music = {
+  accolade: null,
+  captions: null,
   voices: [
     {
       type: 'music',
       entities: [
-        {
-          type: 'Tag',
-          tag: 'TimeSignature',
-          value: [4, 4],
-        },
-        {
-          type: 'Event',
-          event: {
-            type: 'MultiBarRest',
-            count: 4,
-          },
-          duration: new Fraction(16, 4),
-        },
-        {
-          type: 'Tag',
-          tag: Barline.BarLine,
-        },
-        // 1
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 0,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 0 }],
-              },
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // 1
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 0,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 0 }],
-              },
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // 5
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 0,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K5, octaveTranspose: 0 }],
-              },
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // 5
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 0,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K5, octaveTranspose: 0 }],
-              },
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // |
-        { type: 'Tag', tag: Barline.BarLine },
-        // 6./
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 1,
-              dot: 1,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K6, octaveTranspose: -1 }],
-              },
-            },
-          },
-          duration: new Fraction(3, 16),
-        },
-        // 6''//
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 2,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K6, octaveTranspose: 2 }],
-              },
-            },
-          },
-          duration: new Fraction(1, 16),
-        },
-        // 5
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 0,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K5, octaveTranspose: 0 }],
-              },
-              symbols: {
-                bottomRight: ['tremolo3'],
-              },
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // -
-        {
-          type: 'Event',
-          event: {
-            type: 'Repeater4',
-          },
-          duration: new Fraction(1, 4),
-        },
-        // |
-        { type: 'Tag', tag: Barline.BarLine },
-        // 4/
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 1,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K4, octaveTranspose: 0 }],
-              },
-            },
-          },
-          duration: new Fraction(1, 8),
-        },
-        // 4./
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 1,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K4, octaveTranspose: -1 }],
-              },
-            },
-          },
-          duration: new Fraction(1, 8),
-        },
-        // 1'
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 0,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 1 }],
-              },
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // #3
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 0,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [
-                  {
-                    whiteKey: WhiteKey.K3,
-                    octaveTranspose: 0,
-                    accidental: Accidental.Sharp,
-                  },
-                ],
-              },
-              symbols: {
-                top: ['articTenutoAbove'],
-              },
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // =3
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 0,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [
-                  {
-                    whiteKey: WhiteKey.K3,
-                    octaveTranspose: 0,
-                    accidental: Accidental.Natural,
-                  },
-                ],
-              },
-              symbols: {
-                top: ['articAccentAbove'],
-              },
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // |
-        { type: 'Tag', tag: Barline.DashedBarLine },
-        // 2*
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 0,
-              dot: 1,
-              sound: {
-                type: 'Note',
-                pitches: [
-                  {
-                    whiteKey: WhiteKey.K7,
-                    octaveTranspose: 1,
-                    accidental: Accidental.Flat,
-                  },
-                  {
-                    whiteKey: WhiteKey.K4,
-                    octaveTranspose: 1,
-                    accidental: Accidental.DoubleSharp,
-                  },
-                  { whiteKey: WhiteKey.K6, octaveTranspose: -1 },
-                ],
-              },
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // 2/
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 1,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K2, octaveTranspose: 0 }],
-              },
-            },
-          },
-          duration: new Fraction(1, 8),
-        },
-        // 1
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 0,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 0 }],
-              },
-              symbols: {
-                top: ['fermataAbove'],
-              },
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // -
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 1,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 0 }],
-              },
-            },
-          },
-          duration: new Fraction(1, 12),
-        },
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 1,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 0 }],
-              },
-            },
-          },
-          duration: new Fraction(1, 12),
-        },
-        {
-          type: 'Event',
-          event: {
-            type: 'Action',
-            value: {
-              timeMultiplier: 1,
-              dot: 0,
-              sound: {
-                type: 'Note',
-                pitches: [{ whiteKey: WhiteKey.K1, octaveTranspose: 0 }],
-              },
-            },
-          },
-          duration: new Fraction(1, 12),
-        },
-        // |||
-        { type: 'Tag', tag: Barline.EndSign },
+        giveNote(3, 0, 1, 0, new Fraction(1, 12)),
+        giveNote(4, 0, 1, 0, new Fraction(1, 12)),
+        giveNote(5, 0, 1, 0, new Fraction(1, 12)),
+        giveBarline(),
+        giveNote(5, 0, 1),
+        giveNote(1, 0, 1),
+        giveNote(3, 0, 1, 0, new Fraction(1, 12)),
+        giveNote(4, 0, 1, 0, new Fraction(1, 12)),
+        giveNote(5, 0, 1, 0, new Fraction(1, 12)),
+        giveNote(5, 0, 1),
+        giveNote(1, 0, 1),
+        giveRest(1),
+        giveNote(5, -1, 1),
+        giveBarline(),
+        giveNote(5, 0, 1),
+        giveNote(4, 0, 2),
+        giveNote(4, 0, 2),
+        giveNote(3, 0, 2),
+        giveNote(6, 0, 1, 1),
+        giveNote(5),
+        giveNote(1, 0, 1),
+        giveNote(2, 0, 1),
+        giveBarline(),
+        giveNote(3),
+        giveNote(2, 0, 1),
+        giveNote(1, 0, 2),
+        giveNote(2, 0, 2),
+        giveNote(2),
+        giveNote(2, 0, 1),
+        giveNote(1, 0, 1),
+        giveBarline(),
+        giveNote(6, ud, ud, ud, ud, ud, { top: ['fermataAbove'] }),
+        giveRep4(),
+        giveRep4(),
+        giveBarline(Barline.DoubleBarLine),
       ],
       spans: IntervalMap.fromRecords([
-        [{ start: 8, end: 9 }, { type: 'Beam' }],
-        [{ start: 9, end: 9 }, { type: 'Beam' }],
-        [{ start: 13, end: 14 }, { type: 'Beam' }],
-        [{ start: 22, end: 24 }, { type: 'Beam' }],
-        [{ start: 3, end: 4 }, { type: 'Slur' }],
-        [{ start: 13, end: 14 }, { type: 'Slur' }],
-        [
-          { start: 22, end: 24 },
-          { type: 'Tuplet', value: 3 },
-        ],
-        [{ start: 20, end: 20 }, { type: 'Beam' }],
-        [
-          { start: 3, end: 9 },
-          { type: 'Symbol', value: 'dynamicDiminuendoHairpin' },
-        ],
-        [
-          { start: 13, end: 16 },
-          { type: 'Symbol', value: 'dynamicCrescendoHairpin' },
-        ],
+        giveBeam(0, 2),
+        giveTuplet(0, 2, 3),
+        giveBeam(4, 5),
+        giveBeam(6, 8),
+        giveTuplet(6, 8, 3),
+        giveBeam(9, 10),
+        giveBeam(11, 12),
+        giveBeam(14, 16),
+        giveBeam(15, 16),
+        giveBeam(17, 18),
+        giveBeam(17, 17),
+        giveBeam(20, 21),
+        giveBeam(24, 26),
+        giveBeam(25, 26),
+        giveSlur(26, 27),
+        giveBeam(28, 29),
+      ]) as Spans,
+    },
+    {
+      type: 'lyric',
+      entities: [
+        giveLrc('也', 1, 0, new Fraction(1, 12)),
+        giveLrc('许', 1, 0, new Fraction(1, 12)),
+        giveLrc('某', 1, 0, new Fraction(1, 12)),
+        giveLrc('一', 1),
+        giveLrc('天', 1),
+        giveLrc('就', 1, 0, new Fraction(1, 12)),
+        giveLrc('在', 1, 0, new Fraction(1, 12)),
+        giveLrc('那', 1, 0, new Fraction(1, 12)),
+        giveLrc('一', 1),
+        giveLrc('天', 1),
+        giveLrc('', 1),
+        giveLrc('故', 1),
+        giveLrc('事', 1),
+        giveLrc('也', 2),
+        giveLrc('会', 2),
+        giveLrc('有', 2),
+        giveLrc('终', 1, 1),
+        giveLrc('点'),
+        giveLrc('我', 1),
+        giveLrc('们', 1),
+        giveLrc('挥'),
+        giveLrc('手', 1),
+        giveLrc('告', 2),
+        giveLrc('别', 2),
+        giveLrc(''),
+        giveLrc('所', 1),
+        giveLrc('以', 1),
+        giveLrc('啊'),
+      ],
+      spans: new IntervalMap<Span>(),
+    },
+    {
+      type: 'music',
+      entities: [
+        giveRest(),
+        giveBarline(),
+        giveNote(4, -1),
+        giveRep4(),
+        giveNote(3, -1),
+        giveRep4(),
+        giveBarline(),
+        giveNote(2, -1),
+        giveRep4(),
+        giveNote(5, -1),
+        giveRep4(),
+        giveBarline(),
+        giveNote(6, -1),
+        giveNote(6, -1, 1, 1),
+        giveNote(5, -1, 2, 0, ud, Accidental.Sharp),
+        giveNote(5, -1),
+        giveNote(5, -1, 0, 0, ud, Accidental.Natural),
+        giveBarline(),
+        giveNote(4, -1, 0, 0, ud, Accidental.Sharp, { top: ['fermataAbove'] }),
+        giveRep4(),
+        giveRep4(),
+        giveBarline(Barline.DoubleBarLine),
+      ],
+      spans: IntervalMap.fromRecords([
+        giveSlur(12, 13),
+        giveBeam(13, 14),
+        giveBeam(14, 14),
+        giveSlur(14, 15),
       ]),
     },
     {
       type: 'lyric',
       entities: [
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-          },
-          duration: new Fraction(16, 4),
-        },
-        // 1
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '一',
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // 1
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '闪',
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // 5
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '一',
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // 5
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '闪',
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // 6..//
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '亮',
-            },
-          },
-          duration: new Fraction(3, 16),
-        },
-        // 6''//
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '晶',
-            },
-          },
-          duration: new Fraction(1, 16),
-        },
-        // 5
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '晶',
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // -
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-          },
-          duration: new Fraction(1, 4),
-        },
-        // 4/
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '满',
-            },
-          },
-          duration: new Fraction(1, 8),
-        },
-        // 4./
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-          },
-          duration: new Fraction(1, 8),
-        },
-        // 1'
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '天',
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // #3
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '都',
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // =3
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '是',
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // 2*
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '小',
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // 2/
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '星',
-            },
-          },
-          duration: new Fraction(1, 8),
-        },
-        // 1
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-            syllable: {
-              content: '星',
-            },
-          },
-          duration: new Fraction(1, 4),
-        },
-        // -
-        {
-          type: 'Event',
-          event: {
-            type: 'Pronounce',
-          },
-          duration: new Fraction(1, 4),
-        },
+        giveLrc(''),
+        giveLrc('呜'),
+        giveLrc(''),
+        giveLrc('呜'),
+        giveLrc(''),
+        giveLrc('啊'),
+        giveLrc(''),
+        giveLrc('啊'),
+        giveLrc(''),
+        giveLrc('呜'),
+        giveLrc('', 1, 1),
+        giveLrc('呜', 2, 0, ud),
+        giveLrc(''),
+        giveLrc('呜', 0, 0, ud),
+        giveLrc('啊', 0, 0, ud),
       ],
-      spans: IntervalMap.fromRecords([]),
+      spans: new IntervalMap<Span>(),
+    },
+    {
+      type: 'music',
+      entities: [
+        giveRest(),
+        giveBarline(),
+        giveNote(4, -2),
+        giveRep4(),
+        giveNote(3, -2),
+        giveRep4(),
+        giveBarline(),
+        giveNote(4, -2),
+        giveRep4(),
+        giveNote(5, -2),
+        giveRep4(),
+        giveBarline(),
+        giveNote(6, -2),
+        giveNote(6, -2, 1, 1),
+        giveNote(7, -2, 2),
+        giveNote(7, -2),
+        giveNote(2, -2, 0),
+        giveBarline(),
+        giveNote(2, -2, 0, ud, ud, ud, { top: ['fermataAbove'] }),
+        giveRep4(),
+        giveRep4(),
+        giveBarline(Barline.DoubleBarLine),
+      ],
+      spans: IntervalMap.fromRecords([
+        giveSlur(12, 13),
+        giveBeam(13, 14),
+        giveBeam(14, 14),
+        giveSlur(14, 15),
+      ]),
+    },
+    {
+      type: 'lyric',
+      entities: [
+        giveLrc(''),
+        giveLrc('啊'),
+        giveLrc(''),
+        giveLrc('啊'),
+        giveLrc(''),
+        giveLrc('啊'),
+        giveLrc(''),
+        giveLrc('啊'),
+        giveLrc(''),
+        giveLrc('啊'),
+        giveLrc('', 1, 1),
+        giveLrc('啊', 2, 0, ud),
+        giveLrc(''),
+        giveLrc('啊', 0, 0, ud),
+        giveLrc('啊', 0, 0, ud),
+      ],
+      spans: new IntervalMap<Span>(),
     },
   ],
 };

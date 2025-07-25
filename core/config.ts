@@ -2,7 +2,7 @@ import { fromRawRenderConfig } from '../types/config';
 
 export const renderConfig = fromRawRenderConfig({
   pageHeight: 2828.4,
-  lineWidth: 1500,
+  lineWidth: 1400,
   lineGap: 30,
   smuflSize: 36,
   glyphHeight: 30,

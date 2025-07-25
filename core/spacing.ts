@@ -158,6 +158,7 @@ export function computeSliceWidths(
   }));
 
   const totalForce = computeSystemForce(springs, targetWidth);
+  if (totalForce < 0) console.warn('Negative total force:', totalForce);
 
   let [offsetX] = negXs;
   return slices.map((unit, index) => {
