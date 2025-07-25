@@ -7,6 +7,7 @@ import {
   moveLeft,
   moveRight,
   normAnchorPosition,
+  notrans,
   RenderObject,
   Transform,
 } from '../../types/layout';
@@ -54,7 +55,7 @@ export function engraveNumber(
 }
 
 export function wrapNode(
-  transform: Transform,
+  transform: Transform = notrans(),
   ...trees: LayoutTree<RenderObject>[]
 ): LayoutTreeNode<RenderObject> {
   return {

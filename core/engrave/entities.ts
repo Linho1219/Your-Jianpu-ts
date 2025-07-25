@@ -40,24 +40,43 @@ interface NodeWithNonIntrusive {
   nonIntrusive: EntityNonIntrusive;
 }
 
-const getBasicNonIntrusive = (config: RenderConfig) => {
-  return {
-    fullY: -config.glyphHeight,
-    topY: -config.glyphHeight,
-    topleftX: -config.glyphWidth / 2,
-    toprightX: config.glyphWidth / 2,
-    bottomLeftX: -config.glyphWidth / 2,
-    bottomRightX: config.glyphWidth / 2,
-  };
-};
+const getBasicNonIntrusive = (config: RenderConfig) => ({
+  fullY: -config.glyphHeight,
+  topY: -config.glyphHeight,
+  topleftX: -config.glyphWidth / 2,
+  toprightX: config.glyphWidth / 2,
+  bottomLeftX: -config.glyphWidth / 2,
+  bottomRightX: config.glyphWidth / 2,
+});
+
+const getEmptyNonIntrusive = (): EntityNonIntrusive => ({
+  fullY: 0,
+  topY: 0,
+  topleftX: 0,
+  toprightX: 0,
+  bottomLeftX: 0,
+  bottomRightX: 0,
+});
 
 function engraveSliceElement(
   element: SlicedEntity,
   config: RenderConfig
-): LayoutTree<RenderObject> {
-  if (!element || element.type === 'PartialEvent') return wrapNode(notrans());
-  if (element.type === 'Event') return drawEvent(element.event, config).node;
-  if (element.type === 'Tag') return drawTag(element, config);
+): NodeWithNonIntrusive {
+  if (!element || element.type === 'PartialEvent')
+    return { node: wrapNode(), nonIntrusive: getEmptyNonIntrusive() };
+  if (element.type === 'Event') return drawEvent(element.event, config);
+  if (element.type === 'Tag')
+    return {
+      node: drawTag(element, config),
+      nonIntrusive: {
+        fullY: -(config.glyphHeight + config.barLineLength) / 2,
+        topY: -(config.glyphHeight + config.barLineLength) / 2,
+        topleftX: -config.barLineLeftPadding,
+        toprightX: config.barLineRightPadding,
+        bottomLeftX: -config.barLineLeftPadding,
+        bottomRightX: config.barLineRightPadding,
+      },
+    };
   throw new Error('Unknown SliceElement kind');
 }
 
