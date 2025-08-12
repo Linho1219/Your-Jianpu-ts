@@ -10,16 +10,12 @@ import {
   whiteKeyToGlyph,
   scaleVrtcl,
   LayoutTreeLeaf,
+  BBox,
+  emptyBox,
 } from '../../types/layout';
 import { RenderConfig } from '../../types/config';
 import { Event, Action, Accidental } from '../../types/basic';
-import {
-  Barline,
-  entityLikeBarLine,
-  Tag,
-  TagEntity,
-  tagLikeBarLine,
-} from '../../types/abstract';
+import { Barline, entityLikeBarLine, Tag, TagEntity, tagLikeBarLine } from '../../types/abstract';
 import { RenderObject, AnchorPosition } from '../../types/layout';
 import { SlicedEntity } from '../slice';
 import { getBoundingBox } from '../bounding';
@@ -33,20 +29,25 @@ interface EntityNonIntrusive {
   toprightX: number;
   bottomLeftX: number;
   bottomRightX: number;
+  box: BBox;
 }
 
-interface NodeWithNonIntrusive {
+export interface NodeWithNonIntrusive {
   node: LayoutTree<RenderObject>;
   nonIntrusive: EntityNonIntrusive;
 }
 
-const getBasicNonIntrusive = (config: RenderConfig) => ({
+const getBasicNonIntrusive = (config: RenderConfig): EntityNonIntrusive => ({
   fullY: -config.glyphHeight,
   topY: -config.glyphHeight,
   topleftX: -config.glyphWidth / 2,
   toprightX: config.glyphWidth / 2,
   bottomLeftX: -config.glyphWidth / 2,
   bottomRightX: config.glyphWidth / 2,
+  box: [
+    [-config.glyphWidth / 2, -config.glyphHeight],
+    [config.glyphWidth / 2, 0],
+  ],
 });
 
 const getEmptyNonIntrusive = (): EntityNonIntrusive => ({
@@ -56,18 +57,17 @@ const getEmptyNonIntrusive = (): EntityNonIntrusive => ({
   toprightX: 0,
   bottomLeftX: 0,
   bottomRightX: 0,
+  box: emptyBox(),
 });
 
-function engraveSliceElement(
-  element: SlicedEntity,
-  config: RenderConfig
-): NodeWithNonIntrusive {
+function engraveSliceElement(element: SlicedEntity, config: RenderConfig): NodeWithNonIntrusive {
   if (!element || element.type === 'PartialEvent')
     return { node: wrapNode(), nonIntrusive: getEmptyNonIntrusive() };
   if (element.type === 'Event') return drawEvent(element.event, config);
-  if (element.type === 'Tag')
+  if (element.type === 'Tag') {
+    const node = drawTag(element, config);
     return {
-      node: drawTag(element, config),
+      node,
       nonIntrusive: {
         fullY: -(config.glyphHeight + config.barLineLength) / 2,
         topY: -(config.glyphHeight + config.barLineLength) / 2,
@@ -75,14 +75,15 @@ function engraveSliceElement(
         toprightX: config.barLineRightPadding,
         bottomLeftX: -config.barLineLeftPadding,
         bottomRightX: config.barLineRightPadding,
+        box: getBoundingBox(node, config) ?? emptyBox(),
       },
     };
+  }
   throw new Error('Unknown SliceElement kind');
 }
 
-export const engraveSliceElementWithCfg =
-  (config: RenderConfig) => (element: SlicedEntity) =>
-    engraveSliceElement(element, config);
+export const engraveSliceElementWithCfg = (config: RenderConfig) => (element: SlicedEntity) =>
+  engraveSliceElement(element, config);
 
 function drawEvent(event: Event, config: RenderConfig): NodeWithNonIntrusive {
   const { glyphHeight, repeater4Width, repeater4Height, lyricSize } = config;
@@ -97,19 +98,16 @@ function drawEvent(event: Event, config: RenderConfig): NodeWithNonIntrusive {
         const topSymbols: LayoutTree<RenderObject>[] = top.map((symbolName) => {
           currentY -= config.symbolYGap;
           const metrics = config.defReg.regAndGet(symbolName).metrics;
-          const symbolNode: LayoutTree<RenderObject> = wrapNode(
-            moveDown(currentY),
-            {
-              type: 'Leaf',
-              anchor: AnchorPosition.Bottom,
-              object: {
-                type: 'symbol',
-                value: symbolName,
-                width: metrics.width,
-                height: metrics.height,
-              },
-            }
-          );
+          const symbolNode: LayoutTree<RenderObject> = wrapNode(moveDown(currentY), {
+            type: 'Leaf',
+            anchor: AnchorPosition.Bottom,
+            object: {
+              type: 'symbol',
+              value: symbolName,
+              width: metrics.width,
+              height: metrics.height,
+            },
+          });
           currentY -= metrics.height;
           return symbolNode;
         });
@@ -118,27 +116,22 @@ function drawEvent(event: Event, config: RenderConfig): NodeWithNonIntrusive {
       }
       if (bottomRight) {
         let currentX = nonIntrusive.bottomRightX;
-        const bottomRightSymbols: LayoutTree<RenderObject>[] = bottomRight.map(
-          (symbolName) => {
-            currentX += config.symbolXGap;
-            const metrics = config.defReg.regAndGet(symbolName).metrics;
-            const symbolNode: LayoutTree<RenderObject> = wrapNode(
-              moveRight(currentX),
-              {
-                type: 'Leaf',
-                anchor: AnchorPosition.BottomLeft,
-                object: {
-                  type: 'symbol',
-                  value: symbolName,
-                  width: metrics.width,
-                  height: metrics.height,
-                },
-              }
-            );
-            currentX += metrics.width;
-            return symbolNode;
-          }
-        );
+        const bottomRightSymbols: LayoutTree<RenderObject>[] = bottomRight.map((symbolName) => {
+          currentX += config.symbolXGap;
+          const metrics = config.defReg.regAndGet(symbolName).metrics;
+          const symbolNode: LayoutTree<RenderObject> = wrapNode(moveRight(currentX), {
+            type: 'Leaf',
+            anchor: AnchorPosition.BottomLeft,
+            object: {
+              type: 'symbol',
+              value: symbolName,
+              width: metrics.width,
+              height: metrics.height,
+            },
+          });
+          currentX += metrics.width;
+          return symbolNode;
+        });
         nonIntrusive.bottomRightX = currentX;
         symbolTrees.push(...bottomRightSymbols);
       }
@@ -169,12 +162,7 @@ function drawEvent(event: Event, config: RenderConfig): NodeWithNonIntrusive {
       const textBottomMargin = config.smuflSize * 0.25;
       const textSideMargin = config.smuflSize * 0.6;
       const children: LayoutTree<RenderObject>[] = [];
-      const engravedText = engraveNumber(
-        count,
-        'timeSig',
-        config,
-        AnchorPosition.Bottom
-      );
+      const engravedText = engraveNumber(count, 'timeSig', config, AnchorPosition.Bottom);
       children.push(wrapNode(moveUp(textBottomMargin), engravedText.node));
       const hrztlBarLength = engravedText.metrics.width + textSideMargin * 2;
       children.push({
@@ -198,7 +186,8 @@ function drawEvent(event: Event, config: RenderConfig): NodeWithNonIntrusive {
       children.push(wrapNode(moveRight(hrztlBarLength / 2), vrtclBar));
       children.push(wrapNode(moveLeft(hrztlBarLength / 2), vrtclBar));
       const node = wrapNode(moveUp(glyphHeight / 2), ...children);
-      const [[x1, y1], [x2]] = getBoundingBox(node, config)!;
+      const box = getBoundingBox(node, config)!;
+      const [[x1, y1], [x2]] = box;
       return {
         node,
         nonIntrusive: {
@@ -208,6 +197,7 @@ function drawEvent(event: Event, config: RenderConfig): NodeWithNonIntrusive {
           toprightX: x2,
           bottomLeftX: x1,
           bottomRightX: x2,
+          box,
         },
       };
     }
@@ -232,6 +222,7 @@ function drawEvent(event: Event, config: RenderConfig): NodeWithNonIntrusive {
           toprightX: 0,
           bottomLeftX: 0,
           bottomRightX: 0,
+          box: emptyBox(),
         },
       };
   }
@@ -276,17 +267,11 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
     })),
   });
 
-  function getAccidental(
-    accidental: Accidental,
-    scaleY = 1
-  ): LayoutTree<RenderObject> {
+  function getAccidental(accidental: Accidental, scaleY = 1): LayoutTree<RenderObject> {
     const { metrics } = config.defReg.regAndGet(accidental);
     return {
       type: 'Node',
-      transform: move(
-        -glyphWidth / 2 - symbolXGap,
-        (-glyphHeight + accidentalYOffset) * scaleY
-      ),
+      transform: move(-glyphWidth / 2 - symbolXGap, (-glyphHeight + accidentalYOffset) * scaleY),
       children: [
         {
           type: 'Leaf',
@@ -308,24 +293,20 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
     scaleY = 1,
     ignoreBeam = false
   ): LayoutTree<RenderObject> {
-    const dots: LayoutTree<RenderObject>[] = Array.from(
-      { length: count },
-      (_, i) => ({
-        type: 'Node',
-        transform:
-          direction === 'up'
-            ? moveUp(i * (transposeDotGap + 2 * transposeDotRadius))
-            : moveDown(i * (transposeDotGap + 2 * transposeDotRadius)),
-        children: [
-          {
-            type: 'Leaf',
-            anchor:
-              direction === 'up' ? AnchorPosition.Bottom : AnchorPosition.Top,
-            object: { type: 'circle', radius: transposeDotRadius },
-          },
-        ],
-      })
-    );
+    const dots: LayoutTree<RenderObject>[] = Array.from({ length: count }, (_, i) => ({
+      type: 'Node',
+      transform:
+        direction === 'up'
+          ? moveUp(i * (transposeDotGap + 2 * transposeDotRadius))
+          : moveDown(i * (transposeDotGap + 2 * transposeDotRadius)),
+      children: [
+        {
+          type: 'Leaf',
+          anchor: direction === 'up' ? AnchorPosition.Bottom : AnchorPosition.Top,
+          object: { type: 'circle', radius: transposeDotRadius },
+        },
+      ],
+    }));
 
     return {
       type: 'Node',
@@ -335,8 +316,7 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
           : moveDown(
               ignoreBeam
                 ? transposeDotGap
-                : (beamGap + beamHeight) * action.timeMultiplier +
-                    transposeDotGap
+                : (beamGap + beamHeight) * action.timeMultiplier + transposeDotGap
             ),
       children: dots,
     };
@@ -350,7 +330,8 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
 
     const node = wrapNode(notrans(), ...children);
 
-    const [[_, y1], [x2]] = getBoundingBox(node, config)!;
+    const box = getBoundingBox(node, config)!;
+    const [[_, y1], [x2]] = box;
     const nonIntrusive: EntityNonIntrusive = {
       fullY: y1,
       topY: y1,
@@ -358,6 +339,7 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
       toprightX: config.glyphWidth / 2,
       bottomLeftX: -config.glyphWidth / 2,
       bottomRightX: x2,
+      box,
     };
 
     return { node, nonIntrusive };
@@ -374,6 +356,7 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
       toprightX: config.glyphWidth / 2,
       bottomLeftX: -config.glyphWidth / 2,
       bottomRightX: config.glyphWidth / 2,
+      box: emptyBox(),
     };
 
     if (action.dot) {
@@ -401,12 +384,7 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
         }
 
         if (pitch.octaveTranspose < 0) {
-          const dots = getTransposeDots(
-            -pitch.octaveTranspose,
-            'down',
-            scaleY,
-            !!index
-          );
+          const dots = getTransposeDots(-pitch.octaveTranspose, 'down', scaleY, !!index);
           const [_, [__, y2]] = getBoundingBox(dots, config)!;
           if (index) currentY -= -y2; // 下加点侵入下方音符，需上移
           nonIntrusive.topY = currentY - glyphHeight * scaleY;
@@ -426,17 +404,16 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
         return tree;
       });
     rootChildren.push(...pitchNodes);
+    const node = wrapNode(notrans(), ...rootChildren);
+    nonIntrusive.box = getBoundingBox(node, config) ?? emptyBox();
     return {
-      node: wrapNode(notrans(), ...rootChildren),
+      node,
       nonIntrusive,
     };
   } else throw new Error(`Unknown sound type`);
 }
 
-function drawTag(
-  entity: TagEntity,
-  config: RenderConfig
-): LayoutTree<RenderObject> {
+function drawTag(entity: TagEntity, config: RenderConfig): LayoutTree<RenderObject> {
   if (tagLikeBarLine(entity.tag)) return drawBarline(entity.tag, config);
   switch (entity.tag) {
     case 'TimeSignature': {
@@ -450,25 +427,12 @@ function drawTag(
         children,
       };
       const [numerator, denominator] = entity.value;
-      const numeratorResult = engraveNumber(
-        numerator,
-        'timeSig',
-        config,
-        AnchorPosition.Bottom
-      );
-      const denominatorResult = engraveNumber(
-        denominator,
-        'timeSig',
-        config,
-        AnchorPosition.Top
-      );
+      const numeratorResult = engraveNumber(numerator, 'timeSig', config, AnchorPosition.Bottom);
+      const denominatorResult = engraveNumber(denominator, 'timeSig', config, AnchorPosition.Top);
       children.push(wrapNode(moveUp(config.beamGap), numeratorResult.node));
       children.push(wrapNode(moveDown(config.beamGap), denominatorResult.node));
       const maxWidth =
-        Math.max(
-          numeratorResult.metrics.width,
-          denominatorResult.metrics.width
-        ) * 1.2;
+        Math.max(numeratorResult.metrics.width, denominatorResult.metrics.width) * 1.2;
       children.push({
         type: 'Leaf',
         anchor: AnchorPosition.Centre,
@@ -507,10 +471,7 @@ function drawTag(
   }
 }
 
-function drawBarline(
-  tag: Barline,
-  config: RenderConfig
-): LayoutTree<RenderObject> {
+function drawBarline(tag: Barline, config: RenderConfig): LayoutTree<RenderObject> {
   const {
     barLineLength,
     barLineWidth,
@@ -542,9 +503,7 @@ function drawBarline(
     },
   ];
 
-  const getRepeatDots = (
-    anchor: AnchorPosition
-  ): LayoutTree<RenderObject>[] => [
+  const getRepeatDots = (anchor: AnchorPosition): LayoutTree<RenderObject>[] => [
     {
       type: 'Node',
       transform: moveUp(barLineLength / 6),
