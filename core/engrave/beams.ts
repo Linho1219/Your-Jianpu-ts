@@ -1,15 +1,11 @@
 import { Interval, Spans } from '../../types/abstract';
 import { RenderConfig } from '../../types/config';
-import {
-  AnchorPosition,
-  LayoutTree,
-  move,
-  notrans,
-  RenderObject,
-} from '../../types/layout';
+import { AnchorPosition, LayoutTree, move, notrans, RenderObject } from '../../types/layout';
+import { EntityNonIntrusive } from './entities';
 
 export function engraveBeams(
-  filteredOffset: number[],
+  offsets: number[],
+  nonIntrusives: EntityNonIntrusive[],
   beamIntvls: Interval[],
   config: RenderConfig
 ): LayoutTree<RenderObject> {
@@ -19,8 +15,7 @@ export function engraveBeams(
   const beams = beamIntvls
     .sort(({ start: a }, { start: b }) => a - b) // 按照开始位置升序
     .map((interval) => {
-      while (currBeamEnds.length && currBeamEnds.at(-1)! < interval.start)
-        currBeamEnds.pop();
+      while (currBeamEnds.length && currBeamEnds.at(-1)! < interval.start) currBeamEnds.pop();
       currBeamEnds.push(interval.end);
       return {
         interval,
@@ -29,29 +24,27 @@ export function engraveBeams(
       };
     });
 
-  const beamRects: LayoutTree<RenderObject>[] = beams.map(
-    ({ interval, level }) => {
-      const startX = filteredOffset[interval.start] - glyphWidth * 0.55;
-      const endX = filteredOffset[interval.end] + glyphWidth * 0.55;
-      const width = endX - startX;
-      const offsetY = beamGap + level * (beamGap + beamHeight);
-      return {
-        type: 'Node',
-        transform: move(startX, offsetY),
-        children: [
-          {
-            type: 'Leaf',
-            anchor: AnchorPosition.TopLeft,
-            object: {
-              type: 'rectangle',
-              width,
-              height: beamHeight,
-            },
+  const beamRects: LayoutTree<RenderObject>[] = beams.map(({ interval, level }) => {
+    const startX = offsets[interval.start] + nonIntrusives[interval.start].bottomLeftX;
+    const endX = offsets[interval.end] + nonIntrusives[interval.end].bottomRightX;
+    const width = endX - startX;
+    const offsetY = beamGap + level * (beamGap + beamHeight);
+    return {
+      type: 'Node',
+      transform: move(startX, offsetY),
+      children: [
+        {
+          type: 'Leaf',
+          anchor: AnchorPosition.TopLeft,
+          object: {
+            type: 'rectangle',
+            width,
+            height: beamHeight,
           },
-        ],
-      };
-    }
-  );
+        },
+      ],
+    };
+  });
 
   return {
     type: 'Node',

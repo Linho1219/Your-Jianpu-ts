@@ -19,55 +19,44 @@ import { engraveSpans } from './engrave/spans';
 import { RenderConfig } from '../types/config';
 import { wrapNode } from './engrave/utils';
 
-export function engraveMusic(
-  music: Music,
-  config: RenderConfig
-): LayoutTree<RenderObject> {
+export function engraveMusic(music: Music, config: RenderConfig): LayoutTree<RenderObject> {
   const { lineWidth } = config;
   const { slices, slicedMusic } = sliceMusic(music);
 
   const engravedSlicesByVoice = slicedMusic.voices.map(({ entities }) =>
     entities.map(engraveSliceElementWithCfg(config))
   );
-  const boxesByVoice = engravedSlicesByVoice.map((line) =>
-    line.map(getBoundingBoxWithCfg(config))
-  );
-  const boxesBySlice = (zip(...boxesByVoice) as BoundingBox[][]).map((boxes) =>
-    boxes.reduce(bboxUnion, null)
-  );
 
   const offsetXsBySlice: number[] = computeSliceOffsets(
     slicedMusic,
-    boxesBySlice,
+    engravedSlicesByVoice,
     lineWidth
   );
 
-  const engravedVoices: LayoutTree<RenderObject>[] = slicedMusic.voices.map(
-    (voice, voiceIndex) => {
-      const spans = voice.spans;
-      const beams = voice.beams;
+  const engravedVoices: LayoutTree<RenderObject>[] = slicedMusic.voices.map((voice, voiceIndex) => {
+    const spans = voice.spans;
+    const beams = voice.beams;
 
-      const { arrangedEntityNode, entityBoxes } = arrangeBaseNotes(
-        offsetXsBySlice,
-        engravedSlicesByVoice[voiceIndex],
-        config
-      );
+    const { arrangedEntityNode, entityBoxes } = arrangeBaseNotes(
+      offsetXsBySlice,
+      engravedSlicesByVoice[voiceIndex].map((slice) => slice.node),
+      config
+    );
 
-      const engravedBeams = engraveBeams(offsetXsBySlice, beams, config);
-      const engravedSpans = engraveSpans(
-        offsetXsBySlice,
-        entityBoxes,
-        spans,
-        config
-      );
-      return {
-        type: 'Node',
-        transform: notrans(),
-        children: [arrangedEntityNode, engravedBeams, engravedSpans],
-        remarks: music.voices[voiceIndex].type,
-      };
-    }
-  );
+    const engravedBeams = engraveBeams(
+      offsetXsBySlice,
+      engravedSlicesByVoice[voiceIndex].map((slice) => slice.nonIntrusive),
+      beams,
+      config
+    );
+    const engravedSpans = engraveSpans(offsetXsBySlice, entityBoxes, spans, config);
+    return {
+      type: 'Node',
+      transform: notrans(),
+      children: [arrangedEntityNode, engravedBeams, engravedSpans],
+      remarks: music.voices[voiceIndex].type,
+    };
+  });
 
   const offsetsY = layoutVoicesVertically(engravedVoices, config);
   return {

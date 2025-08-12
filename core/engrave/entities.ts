@@ -22,7 +22,7 @@ import { getBoundingBox } from '../bounding';
 import { SymbolName } from '../../svg/defReg';
 import { engraveNumber, wrapNode } from './utils';
 
-interface EntityNonIntrusive {
+export interface EntityNonIntrusive {
   fullY: number;
   topY: number;
   topleftX: number;
