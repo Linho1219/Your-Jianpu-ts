@@ -18,6 +18,7 @@ import { engraveBeams } from './engrave/beams';
 import { engraveSpans } from './engrave/spans';
 import { RenderConfig } from '../types/config';
 import { wrapNode } from './engrave/utils';
+import { VoiceMetric } from './engrave/accolade';
 
 export function engraveMusic(music: Music, config: RenderConfig): LayoutTree<RenderObject> {
   const { lineWidth } = config;
@@ -55,7 +56,7 @@ export function engraveMusic(music: Music, config: RenderConfig): LayoutTree<Ren
     };
   });
 
-  const offsetsY = layoutVoicesVertically(engravedVoices, config);
+  const { offsetsY, voiceMetrics } = layoutVoicesVertically(engravedVoices, config);
   return {
     type: 'Node',
     transform: notrans(),
@@ -85,11 +86,9 @@ function arrangeBaseNotes(
   return { entityBoxes, arrangedEntityNode };
 }
 
-function layoutVoicesVertically(
-  voiceTrees: LayoutTree<RenderObject>[],
-  config: RenderConfig
-): number[] {
-  const offsets: number[] = [];
+function layoutVoicesVertically(voiceTrees: LayoutTree<RenderObject>[], config: RenderConfig) {
+  const offsetsY: number[] = [];
+  const voiceMetrics: VoiceMetric[] = [];
   let currentOffset = 0;
 
   voiceTrees.forEach((voiceTree, index) => {
@@ -99,9 +98,16 @@ function layoutVoicesVertically(
     }
     const bbox = getBoundingBox(voiceTree, config);
     const [[_x1, y1], [_x2, y2]] = bbox ?? emptyBox();
-    offsets.push(currentOffset + (y1 < 0 ? -y1 : 0));
+    const baseY = currentOffset + (y1 < 0 ? -y1 : 0);
+    offsetsY.push(baseY);
     const height = y2 - y1;
+    voiceMetrics.push({
+      topY: currentOffset,
+      baseY,
+      bottomY: currentOffset + height,
+      height,
+    });
     currentOffset += height;
   });
-  return offsets;
+  return { offsetsY, voiceMetrics };
 }

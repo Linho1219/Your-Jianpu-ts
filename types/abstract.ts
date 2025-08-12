@@ -65,8 +65,7 @@ export class IntervalMap<T> {
     this.records.push(...records);
   }
   getTouches(range: number | Interval): [Interval, T][] {
-    const interval =
-      typeof range === 'number' ? { start: range, end: range } : range;
+    const interval = typeof range === 'number' ? { start: range, end: range } : range;
     return this.records.filter(
       ([{ start, end }]) => !(start > interval.end || end < interval.start)
     );
@@ -104,16 +103,19 @@ export interface Voice {
   spans: Spans;
 }
 
+export interface Accolade {
+  type: 'Bracket' | 'Brace';
+  range: Interval;
+}
+
 export interface Music {
+  /** 声部 */
   voices: Voice[];
+  /** 连谱号 */
   accolade:
     | null
-    | [
-        {
-          type: 'Bracket' | 'Brace';
-          range: Interval;
-        }
-      ];
+    | Accolade[];
+  /** 声部标题 */
   captions: null | string[];
 }
 
