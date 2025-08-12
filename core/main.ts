@@ -37,19 +37,16 @@ export function engraveMusic(music: Music, config: RenderConfig): LayoutTree<Ren
     const spans = voice.spans;
     const beams = voice.beams;
 
+    const slices = engravedSlicesByVoice[voiceIndex];
+    const sliceNodes = slices.map((slice) => slice.node);
+    const sliceMetrics = slices.map((slice) => slice.nonIntrusive);
     const { arrangedEntityNode, entityBoxes } = arrangeBaseNotes(
       offsetXsBySlice,
-      engravedSlicesByVoice[voiceIndex].map((slice) => slice.node),
+      sliceNodes,
       config
     );
-
-    const engravedBeams = engraveBeams(
-      offsetXsBySlice,
-      engravedSlicesByVoice[voiceIndex].map((slice) => slice.nonIntrusive),
-      beams,
-      config
-    );
-    const engravedSpans = engraveSpans(offsetXsBySlice, entityBoxes, spans, config);
+    const engravedBeams = engraveBeams(offsetXsBySlice, sliceMetrics, beams, config);
+    const engravedSpans = engraveSpans(offsetXsBySlice, sliceMetrics, spans, config);
     return {
       type: 'Node',
       transform: notrans(),

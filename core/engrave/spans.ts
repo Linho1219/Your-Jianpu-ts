@@ -1,14 +1,9 @@
-import {
-  BoundingBox,
-  LayoutTree,
-  move,
-  notrans,
-  scaleHrztl,
-} from '../../types/layout';
+import { BoundingBox, LayoutTree, move, notrans, scaleHrztl } from '../../types/layout';
 import { RenderConfig } from '../../types/config';
 import { RenderObject, AnchorPosition } from '../../types/layout';
 import { Interval, IntervalMap, Span, Spans } from '../../types/abstract';
 import { engraveNumber, wrapNode } from './utils';
+import { EntityNonIntrusive } from './entities';
 
 interface SpanEngraveRelate {
   node: LayoutTree<RenderObject>;
@@ -18,28 +13,19 @@ interface SpanEngraveRelate {
 
 export function engraveSpans(
   centerXs: number[],
-  boxes: BoundingBox[],
+  metrics: EntityNonIntrusive[],
   spans: Spans,
   config: RenderConfig
 ) {
-  const heights = boxes.map((box) => {
-    if (!box) return 0;
-    const [[_, y1]] = box;
-    return y1;
-  });
+  const heights = metrics.map((metric) => metric.topY);
   const spanRelates = IntervalMap.fromRecords(
-    spans
-      .entries()
-      .filter(([_, span]) => span.type !== 'Beam')
-      .map(([interval, span]) => [
-        interval,
-        {
-          span,
-          availableY: Math.min(
-            ...heights.slice(interval.start, interval.end + 1)
-          ),
-        },
-      ])
+    spans.entries().map(([interval, span]) => [
+      interval,
+      {
+        span,
+        availableY: Math.min(...heights.slice(interval.start, interval.end + 1)),
+      },
+    ])
   );
   const children: LayoutTree<RenderObject>[] = [];
   while (spanRelates.length > 0) {
@@ -52,7 +38,7 @@ export function engraveSpans(
       spanRelate.span,
       spanRelate.availableY,
       centerXs,
-      boxes,
+      metrics,
       config
     );
     children.push(node);
@@ -76,7 +62,7 @@ function engraveSpan(
   span: Span,
   currentY: number,
   centerXs: number[],
-  boxes: BoundingBox[],
+  metrics: EntityNonIntrusive[],
   config: RenderConfig
 ): SpanEngraveRelate {
   // TO-DO: 其他种类的 Span
@@ -92,12 +78,7 @@ function engraveSpan(
       };
     case 'Tuplet': {
       const textSideMargin = config.smuflSize * 0.1;
-      const engravedText = engraveNumber(
-        span.value,
-        'tuplet',
-        config,
-        AnchorPosition.Centre
-      );
+      const engravedText = engraveNumber(span.value, 'tuplet', config, AnchorPosition.Centre);
       const { width: textWidth, height: textHeight } = engravedText.metrics;
       const backgroundRect: LayoutTree<RenderObject> = {
         type: 'Leaf',
@@ -110,21 +91,13 @@ function engraveSpan(
         },
       };
       const textWithBg = wrapNode(
-        move(
-          (startX + endX) / 2,
-          currentY - config.slurPaddingBottom - config.slurHeight
-        ),
+        move((startX + endX) / 2, currentY - config.slurPaddingBottom - config.slurHeight),
         backgroundRect,
         engravedText.node
       );
       return {
-        node: wrapNode(
-          notrans(),
-          engraveSlur(startX, endX, currentY, config),
-          textWithBg
-        ),
-        occupiedHeight:
-          textHeight / 2 + config.slurHeight + config.slurPaddingBottom,
+        node: wrapNode(notrans(), engraveSlur(startX, endX, currentY, config), textWithBg),
+        occupiedHeight: textHeight / 2 + config.slurHeight + config.slurPaddingBottom,
         affectedInterval: { start: start + 1, end: end - 1 },
       };
     }
