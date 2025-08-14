@@ -24,7 +24,7 @@ export function getAccoladeWidth(accolades: Accolade[] | null, config: RenderCon
     width = Math.max(width, config.bracketThickLineWidth + config.bracketThickLineGap);
   }
   if (accolades.some((value) => value.type === 'Brace')) {
-    width = Math.max(width, config.braceWidth);
+    width = Math.max(width, config.braceWidth+config.braceGap);
   }
   width += config.accoladeGapWidth + config.accoladeLineWidth;
   return width;
@@ -88,7 +88,7 @@ function engraveBrace(
   const factorX = config.braceWidth / origWidth;
   return wrapNode(
     {
-      localPosition: [0, topY],
+      localPosition: [-config.braceGap, topY],
       localScale: [factorX, factorY],
     },
     {

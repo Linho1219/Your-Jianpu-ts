@@ -37,6 +37,7 @@ export const renderConfig = fromRawRenderConfig({
   accoladeGapWidth_glyphWidth: 3 / 2,
   accoladeLineWidth_smuflSize: 1 / 15,
   braceWidth_smuflSize: 1 / 3,
+  braceGap_smuflSize: 1 / 15,
   bracketThickLineWidth_smuflSize: 1 / 6,
   bracketThickLineGap_smuflSize: 1 / 12,
   bracketOverlapRatio: 1 / 5,

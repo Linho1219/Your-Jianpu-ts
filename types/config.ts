@@ -45,6 +45,7 @@ export interface RawRenderConfig {
   accoladeGapWidth_glyphWidth: number;
   accoladeLineWidth_smuflSize: number;
   braceWidth_smuflSize: number;
+  braceGap_smuflSize: number;
   bracketThickLineWidth_smuflSize: number;
   bracketThickLineGap_smuflSize: number;
   bracketOverlapRatio: number;
@@ -83,6 +84,7 @@ export interface RenderConfig extends RawRenderConfig {
   accoladeGapWidth: number;
   accoladeLineWidth: number;
   braceWidth: number;
+  braceGap: number;
   bracketThickLineWidth: number;
   bracketThickLineGap: number;
   timeSignatureLeftPadding: number;
@@ -126,6 +128,7 @@ export function fromRawRenderConfig(raw: RawRenderConfig): RenderConfig {
     accoladeGapWidth: raw.accoladeGapWidth_glyphWidth * glyphWidth,
     accoladeLineWidth: raw.accoladeLineWidth_smuflSize * smuflSize,
     braceWidth: raw.braceWidth_smuflSize * smuflSize,
+    braceGap: raw.braceGap_smuflSize * smuflSize,
     bracketThickLineWidth: raw.bracketThickLineWidth_smuflSize * smuflSize,
     bracketThickLineGap: raw.bracketThickLineGap_smuflSize * smuflSize,
     timeSignatureLeftPadding: raw.timeSignatureLeftPadding_glyphWidth * glyphWidth,
