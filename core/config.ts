@@ -30,7 +30,7 @@ export const renderConfig = fromRawRenderConfig({
   lyricSize_glyphHeight: 4 / 5,
   lyricGap_lineGap: 1 / 4,
   chordGap_glyphHeight: 1 / 3,
-  chordYscale: 2 / 3,
+  chordYscale: 3 / 5,
   timeSignatureYScale: 3 / 4,
   timeSignatureLeftPadding_glyphWidth: 3 / 2,
   timeSignatureRightPadding_glyphWidth: 3 / 2,

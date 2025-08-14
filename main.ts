@@ -1,6 +1,6 @@
 import Fraction from 'fraction.js';
 import { IntervalMap, Music, Barline, Entity, Spans, Interval, Span } from './types/abstract';
-import { Accidental, Action, WhiteKey } from './types/basic';
+import { Accidental, Action, Pitch, WhiteKey } from './types/basic';
 import { engraveMusic } from './core/main';
 import { renderConfig } from './core/config';
 import { flattenLayoutTree } from './core/flatten';
@@ -51,6 +51,22 @@ const giveNote = (
     },
   },
   duration,
+});
+
+const giveChord = (timeMultiplier: number, pitches: Pitch[]): Entity => ({
+  type: 'Event',
+  event: {
+    type: 'Action',
+    value: {
+      timeMultiplier,
+      dot: 0,
+      sound: {
+        type: 'Note',
+        pitches,
+      },
+    },
+  },
+  duration: toDuration(timeMultiplier, 0),
 });
 
 const giveRest = (timeMultiplier = 0, dot = 0): Entity => ({
@@ -155,6 +171,7 @@ const testMusic: Music = {
         giveNote(6, ud, ud, ud, ud, ud, { top: ['fermataAbove'] }),
         giveRep4(),
         giveRep4(),
+        giveRep4(),
         giveBarline(Barline.DoubleBarLine),
       ],
       beams: [
@@ -237,6 +254,7 @@ const testMusic: Music = {
         giveNote(4, -1, 0, 0, ud, Accidental.Sharp, { top: ['fermataAbove'] }),
         giveRep4(),
         giveRep4(),
+        giveRep4(),
         giveBarline(Barline.DoubleBarLine),
       ],
       beams: [giveBeam(13, 14), giveBeam(14, 14)],
@@ -288,6 +306,7 @@ const testMusic: Music = {
         giveNote(2, -2, 0, ud, ud, ud, { top: ['fermataAbove'] }),
         giveRep4(),
         giveRep4(),
+        giveRep4(),
         giveBarline(Barline.DoubleBarLine),
       ],
       beams: [giveBeam(13, 14), giveBeam(14, 14)],
@@ -315,15 +334,78 @@ const testMusic: Music = {
       spans: new IntervalMap<Span>(),
       beams: [],
     },
-    // {
-    //   type:'music',
-    //   entities:[
-    //     giveNote(1,0,1),
-    //     giveNote(1,0,1),
-    //   ],
-    //   beams:[giveBeam(0,1)],
-    //   spans: new IntervalMap<Span>(),
-    // }
+    {
+      type: 'music',
+      entities: [
+        giveChord(0, [
+          { whiteKey: 1, octaveTranspose: 0 },
+          { whiteKey: 3, octaveTranspose: 0 },
+          { whiteKey: 5, octaveTranspose: -1 },
+        ]),
+        giveBarline(),
+        giveChord(1, [
+          { whiteKey: 4, octaveTranspose: -1 },
+          { whiteKey: 6, octaveTranspose: -1 },
+          { whiteKey: 1, octaveTranspose: 0 },
+        ]),
+        giveChord(1, [
+          { whiteKey: 4, octaveTranspose: -1 },
+          { whiteKey: 6, octaveTranspose: -1 },
+          { whiteKey: 1, octaveTranspose: 0 },
+        ]),
+        giveRep4(),
+        giveChord(0, [
+          { whiteKey: 1, octaveTranspose: 0 },
+          { whiteKey: 3, octaveTranspose: 0 },
+          { whiteKey: 5, octaveTranspose: 0 },
+        ]),
+        giveRep4(),
+        giveBarline(),
+        giveChord(0, [
+          { whiteKey: 4, octaveTranspose: -1 },
+          { whiteKey: 6, octaveTranspose: -1 },
+          { whiteKey: 1, octaveTranspose: 0 },
+        ]),
+        giveRep4(),
+        giveChord(0, [
+          { whiteKey: 5, octaveTranspose: -1 },
+          { whiteKey: 7, octaveTranspose: -1 },
+          { whiteKey: 2, octaveTranspose: 0 },
+          { whiteKey: 4, octaveTranspose: 0 },
+          { whiteKey: 6, octaveTranspose: 0 },
+          { whiteKey: 1, octaveTranspose: 1 },
+        ]),
+        giveRep4(),
+        giveBarline(),
+        giveChord(0, [
+          { whiteKey: 1, octaveTranspose: 0 },
+          { whiteKey: 3, octaveTranspose: 0 },
+          { whiteKey: 5, octaveTranspose: 0 },
+        ]),
+        giveRep4(),
+        giveChord(0, [
+          { whiteKey: 5, octaveTranspose: -1 },
+          { whiteKey: 7, octaveTranspose: -1 },
+          { whiteKey: 2, octaveTranspose: 0 },
+          { whiteKey: 4, octaveTranspose: 0 },
+          { whiteKey: 6, octaveTranspose: 0 },
+          { whiteKey: 1, octaveTranspose: 1 },
+        ]),
+        giveRep4(),
+        giveBarline(),
+        giveChord(0, [
+          { whiteKey: 2, octaveTranspose: 0 },
+          { whiteKey: 4, octaveTranspose: 0, accidental: Accidental.Sharp },
+          { whiteKey: 6, octaveTranspose: 0 },
+        ]),
+        giveRep4(),
+        giveRep4(),
+        giveRep4(),
+        giveBarline(Barline.DoubleBarLine),
+      ],
+      beams: [giveBeam(2, 3)],
+      spans: new IntervalMap<Span>(),
+    },
   ],
 };
 

@@ -367,42 +367,43 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
     }
 
     let currentY = 0;
-    const pitchNodes: LayoutTree<RenderObject>[] = action.sound.pitches
-      .reverse()
-      .map((pitch, index) => {
-        if (index) currentY -= config.chordGap;
-        const glyph = getGlyph(whiteKeyToGlyph(pitch.whiteKey));
-        const children: LayoutTree<RenderObject>[] = [
-          isChord ? wrapNode(scaleVrtcl(config.chordYscale), glyph) : glyph,
-        ];
+    const pitchNodes: LayoutTree<RenderObject>[] = action.sound.pitches.map((pitch, index) => {
+      if (index) currentY -= config.chordGap;
+      const glyph = getGlyph(whiteKeyToGlyph(pitch.whiteKey));
+      const children: LayoutTree<RenderObject>[] = [
+        isChord ? wrapNode(scaleVrtcl(scaleY), glyph) : glyph,
+      ];
 
-        if (pitch.accidental) {
-          const accidental = getAccidental(pitch.accidental, scaleY);
-          const [[x1]] = getBoundingBox(accidental, config)!;
-          nonIntrusive.topleftX = Math.min(nonIntrusive.topleftX, x1);
-          children.push(accidental);
+      if (pitch.accidental) {
+        const accidental = getAccidental(pitch.accidental, scaleY);
+        const [[x1]] = getBoundingBox(accidental, config)!;
+        nonIntrusive.topleftX = Math.min(nonIntrusive.topleftX, x1);
+        children.push(accidental);
+      }
+
+      if (pitch.octaveTranspose < 0) {
+        const tdots = getTransposeDots(-pitch.octaveTranspose, 'down', scaleY, !!index);
+        if (index) {
+          const [_, [__, y2]] = getBoundingBox(tdots, config)!;
+          // 下加点侵入下方音符，需上移
+          if (y2 > 0) currentY -= y2;
         }
+        nonIntrusive.topY = currentY - glyphHeight * scaleY;
+        children.push(tdots);
+      } else if (pitch.octaveTranspose > 0) {
+        const tdots = getTransposeDots(pitch.octaveTranspose, 'up', scaleY);
+        const [[_, y1]] = getBoundingBox(tdots, config)!;
+        nonIntrusive.topY = currentY - y1;
+        children.push(tdots);
+      } else {
+        nonIntrusive.topY = currentY - glyphHeight * scaleY;
+      }
 
-        if (pitch.octaveTranspose < 0) {
-          const dots = getTransposeDots(-pitch.octaveTranspose, 'down', scaleY, !!index);
-          const [_, [__, y2]] = getBoundingBox(dots, config)!;
-          if (index) currentY -= -y2; // 下加点侵入下方音符，需上移
-          nonIntrusive.topY = currentY - glyphHeight * scaleY;
-          children.push(dots);
-        } else if (pitch.octaveTranspose > 0) {
-          const dots = getTransposeDots(pitch.octaveTranspose, 'up', scaleY);
-          const [[_, y1]] = getBoundingBox(dots, config)!;
-          nonIntrusive.topY = currentY - y1;
-          children.push(dots);
-        } else {
-          nonIntrusive.topY = currentY - glyphHeight * scaleY;
-        }
-
-        const tree = wrapNode(moveDown(currentY), ...children);
-        const [[_, y1]] = getBoundingBox(tree, config)!;
-        currentY = nonIntrusive.fullY = y1;
-        return tree;
-      });
+      const tree = wrapNode(moveDown(currentY), ...children);
+      const [[_, y1]] = getBoundingBox(tree, config)!;
+      currentY = nonIntrusive.fullY = y1;
+      return tree;
+    });
     rootChildren.push(...pitchNodes);
     const node = wrapNode(notrans(), ...rootChildren);
     nonIntrusive.box = getBoundingBox(node, config) ?? emptyBox();

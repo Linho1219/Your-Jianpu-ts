@@ -93,7 +93,7 @@ function computeVoiceOffsetY(voiceTrees: LayoutTree<RenderObject>[], config: Ren
       else currentOffset += config.lineGap;
     }
     const bbox = getBoundingBox(voiceTree, config);
-    const [[_x1, y1], [_x2, y2]] = bbox ?? emptyBox();
+    const [[_, y1], [__, y2]] = bbox ?? emptyBox();
     const baseY = currentOffset + (y1 < 0 ? -y1 : 0);
     offsetsY.push(baseY);
     const height = y2 - y1;
