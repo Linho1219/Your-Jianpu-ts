@@ -42,6 +42,12 @@ export interface RawRenderConfig {
   timeSignatureYScale: number;
   timeSignatureLeftPadding_glyphWidth: number;
   timeSignatureRightPadding_glyphWidth: number;
+  accoladeGapWidth_glyphWidth: number;
+  accoladeLineWidth_smuflSize: number;
+  braceWidth_smuflSize: number;
+  bracketThickLineWidth_smuflSize: number;
+  bracketThickLineGap_smuflSize: number;
+  bracketOverlapRatio: number;
   initialTimeSignature: TimeSignature;
   numFontFilename: string;
   smuflFontFilename: string;
@@ -74,13 +80,19 @@ export interface RenderConfig extends RawRenderConfig {
   lyricSize: number;
   lyricGap: number;
   chordGap: number;
+  accoladeGapWidth: number;
+  accoladeLineWidth: number;
+  braceWidth: number;
+  bracketThickLineWidth: number;
+  bracketThickLineGap: number;
   timeSignatureLeftPadding: number;
   timeSignatureRightPadding: number;
   defReg: ReturnType<typeof getDefRegister>;
 }
 
 export function fromRawRenderConfig(raw: RawRenderConfig): RenderConfig {
-  const glyphHeight = raw.glyphHeight,
+  const smuflSize = raw.smuflSize,
+    glyphHeight = raw.glyphHeight,
     glyphWidth = raw.glyphWidth_glyphHeight * glyphHeight,
     barLineWidth = raw.barLineWidth_glyphWidth * glyphWidth,
     lineGap = raw.lineGap;
@@ -111,14 +123,13 @@ export function fromRawRenderConfig(raw: RawRenderConfig): RenderConfig {
     lyricSize: raw.lyricSize_glyphHeight * glyphHeight,
     lyricGap: raw.lyricGap_lineGap * lineGap,
     chordGap: raw.chordGap_glyphHeight * glyphHeight,
-    timeSignatureLeftPadding:
-      raw.timeSignatureLeftPadding_glyphWidth * glyphWidth,
-    timeSignatureRightPadding:
-      raw.timeSignatureRightPadding_glyphWidth * glyphWidth,
-    defReg: getDefRegister(
-      raw.numFontFilename,
-      raw.smuflFontFilename,
-      raw.smuflSize
-    ),
+    accoladeGapWidth: raw.accoladeGapWidth_glyphWidth * glyphWidth,
+    accoladeLineWidth: raw.accoladeLineWidth_smuflSize * smuflSize,
+    braceWidth: raw.braceWidth_smuflSize * smuflSize,
+    bracketThickLineWidth: raw.bracketThickLineWidth_smuflSize * smuflSize,
+    bracketThickLineGap: raw.bracketThickLineGap_smuflSize * smuflSize,
+    timeSignatureLeftPadding: raw.timeSignatureLeftPadding_glyphWidth * glyphWidth,
+    timeSignatureRightPadding: raw.timeSignatureRightPadding_glyphWidth * glyphWidth,
+    defReg: getDefRegister(raw.numFontFilename, raw.smuflFontFilename, raw.smuflSize),
   };
 }

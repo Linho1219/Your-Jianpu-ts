@@ -18,7 +18,7 @@ import { engraveBeams } from './engrave/beams';
 import { engraveSpans } from './engrave/spans';
 import { RenderConfig } from '../types/config';
 import { wrapNode } from './engrave/utils';
-import { VoiceMetric } from './engrave/accolade';
+import { engraveAccolades, getAccoladeWidth, VoiceMetric } from './engrave/accolade';
 
 export function engraveMusic(music: Music, config: RenderConfig): LayoutTree<RenderObject> {
   const { lineWidth } = config;
@@ -28,11 +28,12 @@ export function engraveMusic(music: Music, config: RenderConfig): LayoutTree<Ren
     entities.map(engraveSliceElementWithCfg(config))
   );
 
+  const accoladeMargin = getAccoladeWidth(music.accolade, config);
   const offsetXsBySlice: number[] = computeSliceOffsets(
     slicedMusic,
     engravedSlicesByVoice,
-    lineWidth
-  );
+    lineWidth - accoladeMargin
+  ).map((offset) => offset + accoladeMargin);
 
   const engravedVoices: LayoutTree<RenderObject>[] = slicedMusic.voices.map((voice, voiceIndex) => {
     const spans = voice.spans;
@@ -41,11 +42,7 @@ export function engraveMusic(music: Music, config: RenderConfig): LayoutTree<Ren
     const slices = engravedSlicesByVoice[voiceIndex];
     const sliceNodes = slices.map((slice) => slice.node);
     const sliceMetrics = slices.map((slice) => slice.nonIntrusive);
-    const { arrangedEntityNode, entityBoxes } = arrangeBaseNotes(
-      offsetXsBySlice,
-      sliceNodes,
-      config
-    );
+    const arrangedEntityNode = arrangeBaseNotes(offsetXsBySlice, sliceNodes, config);
     const engravedBeams = engraveBeams(offsetXsBySlice, sliceMetrics, beams, config);
     const engravedSpans = engraveSpans(offsetXsBySlice, sliceMetrics, spans, config);
     return {
@@ -56,16 +53,15 @@ export function engraveMusic(music: Music, config: RenderConfig): LayoutTree<Ren
     };
   });
 
-  const { offsetsY, voiceMetrics } = layoutVoicesVertically(engravedVoices, config);
-  return {
-    type: 'Node',
-    transform: notrans(),
-    children: engravedVoices.map((voice, i) => ({
-      type: 'Node',
-      transform: moveDown(offsetsY[i]),
-      children: [voice],
-    })),
-  };
+  const { offsetsY, voiceMetrics } = computeVoiceOffsetY(engravedVoices, config);
+  const arrangedVoiceNodes = engravedVoices.map((voiceTree, index) =>
+    wrapNode(moveDown(offsetsY[index]), voiceTree)
+  );
+  const engravedAccolade = wrapNode(
+    moveRight(accoladeMargin),
+    engraveAccolades(voiceMetrics, music.accolade, config)
+  );
+  return wrapNode(notrans(), engravedAccolade, ...arrangedVoiceNodes);
 }
 
 function arrangeBaseNotes(
@@ -73,20 +69,20 @@ function arrangeBaseNotes(
   engravedEntities: LayoutTree<RenderObject>[],
   config: RenderConfig
 ) {
-  const entityBoxes: BoundingBox[] = [];
+  // const entityBoxes: BoundingBox[] = [];
   const arrangedEntityNode = wrapNode(
     notrans(),
     ...engravedEntities.map((entityTree, index) => {
       const offsetX = slicesOffsetX[index];
       const entityNode = wrapNode(moveRight(offsetX), entityTree);
-      entityBoxes.push(getBoundingBox(entityNode, config));
+      // entityBoxes.push(getBoundingBox(entityNode, config));
       return entityNode;
     })
   );
-  return { entityBoxes, arrangedEntityNode };
+  return arrangedEntityNode;
 }
 
-function layoutVoicesVertically(voiceTrees: LayoutTree<RenderObject>[], config: RenderConfig) {
+function computeVoiceOffsetY(voiceTrees: LayoutTree<RenderObject>[], config: RenderConfig) {
   const offsetsY: number[] = [];
   const voiceMetrics: VoiceMetric[] = [];
   let currentOffset = 0;

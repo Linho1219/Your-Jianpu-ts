@@ -1,13 +1,5 @@
 import Fraction from 'fraction.js';
-import {
-  IntervalMap,
-  Music,
-  Barline,
-  Entity,
-  Spans,
-  Interval,
-  Span,
-} from './types/abstract';
+import { IntervalMap, Music, Barline, Entity, Spans, Interval, Span } from './types/abstract';
 import { Accidental, Action, WhiteKey } from './types/basic';
 import { engraveMusic } from './core/main';
 import { renderConfig } from './core/config';
@@ -15,6 +7,8 @@ import { flattenLayoutTree } from './core/flatten';
 import fs from 'node:fs';
 import { renderSVG } from './svg/render';
 import { getBoundingBox } from './core/bounding';
+import { emptyBox, moveUp } from './types/layout';
+import { wrapNode } from './core/engrave/utils';
 
 const ud = undefined;
 
@@ -100,17 +94,28 @@ const giveSlur = (from: number, to: number): [Interval, Span] => [
   { type: 'Slur' },
 ];
 
-const giveTuplet = (
-  from: number,
-  to: number,
-  value: number
-): [Interval, Span] => [
+const giveTuplet = (from: number, to: number, value: number): [Interval, Span] => [
   { start: from, end: to },
   { type: 'Tuplet', value },
 ];
 
 const testMusic: Music = {
-  accolade: null,
+  accolade: [
+    {
+      type: 'Bracket',
+      range: {
+        start: 2,
+        end: 5,
+      },
+    },
+    {
+      type: 'Brace',
+      range: {
+        start: 0,
+        end: 1,
+      },
+    },
+  ],
   captions: null,
   voices: [
     {
@@ -323,12 +328,9 @@ const testMusic: Music = {
 };
 
 const engraved = engraveMusic(testMusic, renderConfig);
-const totalHeight = getBoundingBox(engraved, renderConfig)?.[1][1] ?? 0;
-const flattened = flattenLayoutTree(engraved);
-const svgStr = renderSVG(
-  flattened,
-  renderConfig.lineWidth,
-  totalHeight,
-  renderConfig
-);
+const [[_, y1], [__, y2]] = getBoundingBox(engraved, renderConfig) ?? emptyBox();
+const movedEngraved = wrapNode(moveUp(y1), engraved);
+const totalHeight = y2 - y1;
+const flattened = flattenLayoutTree(movedEngraved);
+const svgStr = renderSVG(flattened, renderConfig.lineWidth, totalHeight, renderConfig);
 fs.writeFileSync('output.svg', svgStr, 'utf-8');

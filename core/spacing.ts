@@ -16,11 +16,6 @@ export function computeSliceOffsets(
   lineWidth: number
 ): number[] {
   const nodesBySlice = zip(...nodesByVoice) as NodeWithNonIntrusive[][];
-  const sliceWidths = nodesBySlice.map(
-    (nodes) =>
-      Math.max(...nodes.map((node) => node.nonIntrusive.bottomRightX)) -
-      Math.min(...nodes.map((node) => node.nonIntrusive.bottomLeftX))
-  );
   const sliceMetrics = nodesBySlice.map((nodes) => {
     const leftMost = Math.min(...nodes.map((node) => node.nonIntrusive.bottomLeftX));
     const rightMost = Math.max(...nodes.map((node) => node.nonIntrusive.bottomRightX));
