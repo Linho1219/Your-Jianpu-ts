@@ -17,14 +17,12 @@ function combineTransform(t1: Transform, t2: Transform): Transform {
 
 export function flattenLayoutTree<T>(
   tree: LayoutTree<T>,
-  accTransform: Transform = notrans()
+  accTransform: Transform = notrans(),
 ): LayoutFlat<T> {
   if (tree.type === 'Leaf') {
     return [[accTransform, tree.anchor, tree.object]];
   } else if (tree.type === 'Node') {
     const nextTransform = combineTransform(accTransform, tree.transform);
-    return tree.children.flatMap((child) =>
-      flattenLayoutTree(child, nextTransform)
-    );
+    return tree.children.flatMap((child) => flattenLayoutTree(child, nextTransform));
   } else throw new Error('Unknown LayoutTree type');
 }

@@ -180,7 +180,7 @@ export function sliceMusic(music: Music) {
       type: voice.type,
       entities: slicedVoices[index],
       spans: IntervalMap.fromRecords(
-        voice.spans.entries().map(([interval, span]) => [remappers[index](interval), span])
+        voice.spans.entries().map(([interval, span]) => [remappers[index](interval), span]),
       ),
       beams: voice.beams.map((interval) => remappers[index](interval)),
     })),

@@ -61,7 +61,7 @@ function loadFonts(numFontFilename: string, smuflFontFilename: string) {
 export function getDefRegister(
   numFontFilename: string,
   smuflFontFilename: string,
-  smuflSize: number
+  smuflSize: number,
 ) {
   const registeredGlyphs = new Set<SymbolName>();
   const symbolCache = new Map<string, ExtractedSymbol>();
@@ -121,7 +121,7 @@ function extractSymbol(
   unicode: string,
   font: opentype.Font,
   fontSize = 1000,
-  precision = 3
+  precision = 3,
 ): ExtractedSymbol {
   const prtN = (num: number) =>
     num

@@ -24,7 +24,7 @@ export function getAccoladeWidth(accolades: Accolade[] | null, config: RenderCon
     width = Math.max(width, config.bracketThickLineWidth + config.bracketThickLineGap);
   }
   if (accolades.some((value) => value.type === 'Brace')) {
-    width = Math.max(width, config.braceWidth+config.braceGap);
+    width = Math.max(width, config.braceWidth + config.braceGap);
   }
   width += config.accoladeGapWidth + config.accoladeLineWidth;
   return width;
@@ -33,7 +33,7 @@ export function getAccoladeWidth(accolades: Accolade[] | null, config: RenderCon
 export function engraveAccolades(
   metrics: VoiceMetric[],
   accolades: Accolade[] | null,
-  config: RenderConfig
+  config: RenderConfig,
 ): LayoutTree<RenderObject> {
   if (accolades === null) return wrapNode();
   const getYRange = ({ start, end }: Interval): [number, number] => [
@@ -49,7 +49,7 @@ export function engraveAccolades(
       if (accolade.type === 'Brace') return engraveBrace(config, ...range);
       if (accolade.type === 'Bracket') return engraveBracket(config, ...range);
       throw new Error(`Unknown accolade type: ${accolade.type}`);
-    })
+    }),
   );
   const accoladeLine = engraveAccoladeLine(config, ...getTotRange());
   return wrapNode(moveLeft(config.accoladeGapWidth), accoladeLine, braceAndBrackets);
@@ -58,7 +58,7 @@ export function engraveAccolades(
 function engraveAccoladeLine(
   config: RenderConfig,
   topY: number,
-  bottomY: number
+  bottomY: number,
 ): LayoutTree<RenderObject> {
   return {
     type: 'Node',
@@ -80,7 +80,7 @@ function engraveAccoladeLine(
 function engraveBrace(
   config: RenderConfig,
   topY: number,
-  bottomY: number
+  bottomY: number,
 ): LayoutTree<RenderObject> {
   const symbol = config.defReg.regAndGet('brace');
   const { height: origHeight, width: origWidth } = symbol.metrics;
@@ -100,14 +100,14 @@ function engraveBrace(
         width: origWidth,
         height: origHeight,
       },
-    }
+    },
   );
 }
 
 function engraveBracket(
   config: RenderConfig,
   topY: number,
-  bottomY: number
+  bottomY: number,
 ): LayoutTree<RenderObject> {
   const children: LayoutTree<RenderObject>[] = [];
   const topSymbol = config.defReg.regAndGet('bracketTop');
@@ -128,7 +128,7 @@ function engraveBracket(
         width: topSymbol.metrics.width,
         height: topSymbol.metrics.height,
       },
-    })
+    }),
   );
   children.push(
     wrapNode(move(leftMost, bottomY - overlapRatio * bottomSymbol.metrics.height), {
@@ -140,7 +140,7 @@ function engraveBracket(
         width: bottomSymbol.metrics.width,
         height: bottomSymbol.metrics.height,
       },
-    })
+    }),
   );
   children.push(
     wrapNode(move(-thickLineGap, topY), {
@@ -151,7 +151,7 @@ function engraveBracket(
         width: thickLineWidth,
         height: bottomY - topY,
       },
-    })
+    }),
   );
   return wrapNode(notrans(), ...children);
 }

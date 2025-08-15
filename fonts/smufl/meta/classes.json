@@ -2642,14 +2642,8 @@
     "noteheadTriangleDownWhite",
     "noteheadTriangleDownBlack"
   ],
-  "noteheadSetTriangleLeft": [
-    "noteheadTriangleLeftWhite",
-    "noteheadTriangleLeftBlack"
-  ],
-  "noteheadSetTriangleRight": [
-    "noteheadTriangleRightWhite",
-    "noteheadTriangleRightBlack"
-  ],
+  "noteheadSetTriangleLeft": ["noteheadTriangleLeftWhite", "noteheadTriangleLeftBlack"],
+  "noteheadSetTriangleRight": ["noteheadTriangleRightWhite", "noteheadTriangleRightBlack"],
   "noteheadSetTriangleUp": [
     "noteheadTriangleUpDoubleWhole",
     "noteheadTriangleUpWhole",
@@ -3026,10 +3020,7 @@
     "ornamentPrecompTrillSuffixDandrieu",
     "ornamentPrecompPortDeVoixMordent"
   ],
-  "parenthesesNotehead": [
-    "noteheadParenthesisLeft",
-    "noteheadParenthesisRight"
-  ],
+  "parenthesesNotehead": ["noteheadParenthesisLeft", "noteheadParenthesisRight"],
   "pauses": [
     "fermataAbove",
     "fermataBelow",
@@ -3138,12 +3129,7 @@
     "csymAccidentalTripleSharp",
     "csymAccidentalTripleFlat"
   ],
-  "tf_chordSymbols": [
-    "csymDiminished",
-    "csymHalfDiminished",
-    "csymAugmented",
-    "csymMajorSeventh"
-  ],
+  "tf_chordSymbols": ["csymDiminished", "csymHalfDiminished", "csymAugmented", "csymMajorSeventh"],
   "tf_daseianNotation": [
     "daseianGraves1",
     "daseianGraves2",
@@ -3218,17 +3204,8 @@
     "fingeringSubstitutionDash",
     "fingeringMultipleNotes"
   ],
-  "tf_hairpins": [
-    "dynamicCrescendoHairpin",
-    "dynamicDiminuendoHairpin",
-    "dynamicMessaDiVoce"
-  ],
-  "tf_harpPedals": [
-    "harpPedalRaised",
-    "harpPedalCentered",
-    "harpPedalLowered",
-    "harpPedalDivider"
-  ],
+  "tf_hairpins": ["dynamicCrescendoHairpin", "dynamicDiminuendoHairpin", "dynamicMessaDiVoce"],
+  "tf_harpPedals": ["harpPedalRaised", "harpPedalCentered", "harpPedalLowered", "harpPedalDivider"],
   "tf_metronomeMarks": [
     "metNoteDoubleWhole",
     "metNoteDoubleWholeSquare",
@@ -3764,12 +3741,7 @@
     "wiggleCircularSmall",
     "wiggleCircularEnd"
   ],
-  "wigglesQuasiRandom": [
-    "wiggleRandom1",
-    "wiggleRandom2",
-    "wiggleRandom3",
-    "wiggleRandom4"
-  ],
+  "wigglesQuasiRandom": ["wiggleRandom1", "wiggleRandom2", "wiggleRandom3", "wiggleRandom4"],
   "wigglesTrill": [
     "wiggleTrillFastest",
     "wiggleTrillFasterStill",

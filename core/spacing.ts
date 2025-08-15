@@ -12,7 +12,7 @@ function getWeightsFromBeamCounts(counts: number[]): number {
 export function computeSliceOffsets(
   sliceMusic: SlicedMusic,
   nodesByVoice: NodeWithNonIntrusive[][],
-  lineWidth: number
+  lineWidth: number,
 ): number[] {
   const nodesBySlice = zip(...nodesByVoice) as NodeWithNonIntrusive[][];
   const sliceMetrics = nodesBySlice.map((nodes) => {
@@ -38,7 +38,7 @@ export function computeSliceOffsets(
       ...nextSliceLefts.map((left, voiceIndex) => {
         const right = currSliceRights[voiceIndex];
         return left - right;
-      })
+      }),
     );
     minGapWidths.push(minGapWidth);
   }
@@ -88,7 +88,7 @@ export function computeSliceOffsets(
   const gapUnit = getGapUnit();
 
   const gaps = gapWeights.map((weight, index) =>
-    gapsTouchingMinWidths.has(index) ? minGapWidths[index] : weight * gapUnit
+    gapsTouchingMinWidths.has(index) ? minGapWidths[index] : weight * gapUnit,
   );
   let currX = 0;
   const offsets = sliceMetrics.map((slice, index) => {

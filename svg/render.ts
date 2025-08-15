@@ -1,24 +1,15 @@
 import { INode, stringify } from 'svgson';
-import {
-  DrawDirective,
-  normAnchorPosition,
-  RenderObject,
-} from '../types/layout';
+import { DrawDirective, normAnchorPosition, RenderObject } from '../types/layout';
 import { RenderConfig } from '../types/config';
 import { getSize } from '../core/bounding';
-import {
-  generateQuadraticBezierPath,
-  getCommentStr,
-  getINode,
-  getINodeText,
-} from './utils';
+import { generateQuadraticBezierPath, getCommentStr, getINode, getINodeText } from './utils';
 
 export function renderSVG(
   flatLayout: DrawDirective<RenderObject>[],
   width: number,
   height: number,
   config: RenderConfig,
-  PRECISION = 2
+  PRECISION = 2,
 ): string {
   const prtN = (num: number) =>
     num
@@ -45,7 +36,7 @@ export function renderSVG(
       width: prtN(width),
       height: prtN(height),
       fill: '#fff',
-    })
+    }),
   );
 
   for (const [transform, anchor, object] of flatLayout) {
@@ -67,7 +58,7 @@ export function renderSVG(
             cy: prtN(y + object.radius),
             r: prtN(object.radius),
             ...transformAttrs,
-          })
+          }),
         );
         break;
       case 'rectangle': {
@@ -90,7 +81,7 @@ export function renderSVG(
             stroke: '#000',
             'stroke-width': '2px',
             ...transformAttrs,
-          })
+          }),
         );
         break;
       case 'glyph':
@@ -103,7 +94,7 @@ export function renderSVG(
             width: prtN(config.glyphWidth),
             height: prtN(config.glyphHeight),
             ...transformAttrs,
-          })
+          }),
         );
         break;
       case 'symbol':
@@ -116,7 +107,7 @@ export function renderSVG(
             width: prtN(objWidth),
             height: prtN(objHeight),
             ...transformAttrs,
-          })
+          }),
         );
         break;
       case 'text':
@@ -132,8 +123,8 @@ export function renderSVG(
               'alignment-baseline': 'text-after-edge',
               ...transformAttrs,
             },
-            [getINodeText(object.content)]
-          )
+            [getINodeText(object.content)],
+          ),
         );
         break;
       case 'invisible-rectangle':

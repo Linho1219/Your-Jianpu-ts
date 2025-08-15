@@ -7,7 +7,7 @@ export function engraveBeams(
   offsets: number[],
   nonIntrusives: EntityNonIntrusive[],
   beamIntvls: Interval[],
-  config: RenderConfig
+  config: RenderConfig,
 ): LayoutTree<RenderObject> {
   const { beamGap, beamHeight, glyphWidth } = config;
   /** 当前存在的 beam 的结束位置，栈结构 */

@@ -35,7 +35,7 @@ const giveNote = (
   dot = 0,
   duration: Fraction = toDuration(timeMultiplier, dot),
   accidental?: Accidental,
-  symbols?: Action['symbols']
+  symbols?: Action['symbols'],
 ): Entity => ({
   type: 'Event',
   event: {
@@ -88,7 +88,7 @@ const giveLrc = (
   content: string,
   timeMultiplier = 0,
   dot = 0,
-  duration: Fraction = toDuration(timeMultiplier, dot)
+  duration: Fraction = toDuration(timeMultiplier, dot),
 ): Entity => ({
   type: 'Event',
   event: {

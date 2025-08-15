@@ -16,7 +16,7 @@ export function engraveNumber(
   number: number,
   glyphPrefix: string,
   config: RenderConfig,
-  anchor: Anchor
+  anchor: Anchor,
 ) {
   const [anchorX, anchorY] = normAnchorPosition(anchor);
   let currentX = 0;

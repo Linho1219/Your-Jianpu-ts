@@ -15,7 +15,7 @@ export function engraveSpans(
   centerXs: number[],
   metrics: EntityNonIntrusive[],
   spans: Spans,
-  config: RenderConfig
+  config: RenderConfig,
 ) {
   const heights = metrics.map((metric) => metric.topY);
   const spanRelates = IntervalMap.fromRecords(
@@ -25,7 +25,7 @@ export function engraveSpans(
         span,
         availableY: Math.min(...heights.slice(interval.start, interval.end + 1)),
       },
-    ])
+    ]),
   );
   const children: LayoutTree<RenderObject>[] = [];
   while (spanRelates.length > 0) {
@@ -39,7 +39,7 @@ export function engraveSpans(
       spanRelate.availableY,
       centerXs,
       metrics,
-      config
+      config,
     );
     children.push(node);
     if (affectedInterval) {
@@ -49,8 +49,8 @@ export function engraveSpans(
           ([_, affectedSpanRelate]) =>
             (affectedSpanRelate.availableY = Math.min(
               affectedSpanRelate.availableY,
-              spanRelate.availableY - occupiedHeight
-            ))
+              spanRelate.availableY - occupiedHeight,
+            )),
         );
     }
   }
@@ -63,7 +63,7 @@ function engraveSpan(
   currentY: number,
   centerXs: number[],
   metrics: EntityNonIntrusive[],
-  config: RenderConfig
+  config: RenderConfig,
 ): SpanEngraveRelate {
   // TO-DO: 其他种类的 Span
   const startX = centerXs[start];
@@ -93,7 +93,7 @@ function engraveSpan(
       const textWithBg = wrapNode(
         move((startX + endX) / 2, currentY - config.slurPaddingBottom - config.slurHeight),
         backgroundRect,
-        engravedText.node
+        engravedText.node,
       );
       return {
         node: wrapNode(notrans(), engraveSlur(startX, endX, currentY, config), textWithBg),
@@ -120,7 +120,7 @@ function engraveSpan(
               width: originalWidth,
               height,
             },
-          }
+          },
         ),
         occupiedHeight: height + config.slurPaddingBottom,
         affectedInterval: { start, end },
@@ -135,7 +135,7 @@ function engraveSlur(
   startX: number,
   endX: number,
   height: number,
-  config: RenderConfig
+  config: RenderConfig,
 ): LayoutTree<RenderObject> {
   const { slurHeight, slurPaddingX, slurPaddingBottom } = config;
   const width = endX - startX;

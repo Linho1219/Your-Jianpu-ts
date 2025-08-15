@@ -1279,12 +1279,7 @@
   },
   "functionTheorySymbolsSupplement": {
     "description": "Function theory symbols supplement",
-    "glyphs": [
-      "functionMUpper",
-      "functionMLower",
-      "functionNUpperSuperscript",
-      "functionRLower"
-    ],
+    "glyphs": ["functionMUpper", "functionMLower", "functionNUpperSuperscript", "functionRLower"],
     "range_end": "U+ED0F",
     "range_start": "U+ED00"
   },

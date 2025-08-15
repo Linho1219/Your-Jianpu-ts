@@ -67,7 +67,7 @@ export class IntervalMap<T> {
   getTouches(range: number | Interval): [Interval, T][] {
     const interval = typeof range === 'number' ? { start: range, end: range } : range;
     return this.records.filter(
-      ([{ start, end }]) => !(start > interval.end || end < interval.start)
+      ([{ start, end }]) => !(start > interval.end || end < interval.start),
     );
   }
   values(): T[] {
@@ -112,9 +112,7 @@ export interface Music {
   /** 声部 */
   voices: Voice[];
   /** 连谱号 */
-  accolade:
-    | null
-    | Accolade[];
+  accolade: null | Accolade[];
   /** 声部标题 */
   captions: null | string[];
 }

@@ -1,10 +1,10 @@
-import { INode } from "svgson";
+import { INode } from 'svgson';
 
 export function generateQuadraticBezierPath(
   x: number,
   y: number,
   width: number,
-  height: number
+  height: number,
 ): string {
   const x1 = x;
   const y1 = y + height;
@@ -18,7 +18,7 @@ export function generateQuadraticBezierPath(
 export function getINode(
   tagName: string,
   attr: Record<string, string>,
-  children: INode[] = []
+  children: INode[] = [],
 ): INode {
   return {
     name: tagName,
@@ -29,10 +29,7 @@ export function getINode(
   };
 }
 
-export function getINodeText(
-  content: string,
-  attr: Record<string, string> = {}
-): INode {
+export function getINodeText(content: string, attr: Record<string, string> = {}): INode {
   return {
     name: '',
     type: 'text',
