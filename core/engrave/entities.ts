@@ -11,7 +11,6 @@ import {
   scaleVrtcl,
   LayoutTreeLeaf,
   BBox,
-  emptyBox,
 } from '../../types/layout';
 import { RenderConfig } from '../../types/config';
 import { Event, Action, Accidental } from '../../types/basic';
@@ -44,10 +43,7 @@ const getBasicNonIntrusive = (config: RenderConfig): EntityNonIntrusive => ({
   toprightX: config.glyphWidth / 2,
   bottomLeftX: -config.glyphWidth / 2,
   bottomRightX: config.glyphWidth / 2,
-  box: [
-    [-config.glyphWidth / 2, -config.glyphHeight],
-    [config.glyphWidth / 2, 0],
-  ],
+  box: new BBox(-config.glyphWidth / 2, -config.glyphHeight, config.glyphWidth, config.glyphHeight),
 });
 
 const getEmptyNonIntrusive = (): EntityNonIntrusive => ({
@@ -57,7 +53,7 @@ const getEmptyNonIntrusive = (): EntityNonIntrusive => ({
   toprightX: 0,
   bottomLeftX: 0,
   bottomRightX: 0,
-  box: emptyBox(),
+  box: new BBox(),
 });
 
 function engraveSliceElement(element: SlicedEntity, config: RenderConfig): NodeWithNonIntrusive {
@@ -75,7 +71,7 @@ function engraveSliceElement(element: SlicedEntity, config: RenderConfig): NodeW
         toprightX: config.barLineRightPadding,
         bottomLeftX: -config.barLineLeftPadding,
         bottomRightX: config.barLineRightPadding,
-        box: getBoundingBox(node, config) ?? emptyBox(),
+        box: getBoundingBox(node, config),
       },
     };
   }
@@ -91,7 +87,7 @@ function drawEvent(event: Event, config: RenderConfig): NodeWithNonIntrusive {
     case 'Action': {
       const { node: soundTree, nonIntrusive } = drawSound(event.value, config);
       if (!event.value.symbols) return { node: soundTree, nonIntrusive };
-      const { top, left, topRight, bottomRight } = event.value.symbols;
+      const { top, bottomRight } = event.value.symbols;
       const symbolTrees: LayoutTree<RenderObject>[] = [];
       if (top) {
         let currentY = nonIntrusive.topY;
@@ -186,8 +182,8 @@ function drawEvent(event: Event, config: RenderConfig): NodeWithNonIntrusive {
       children.push(wrapNode(moveRight(hrztlBarLength / 2), vrtclBar));
       children.push(wrapNode(moveLeft(hrztlBarLength / 2), vrtclBar));
       const node = wrapNode(moveUp(glyphHeight / 2), ...children);
-      const box = getBoundingBox(node, config)!;
-      const [[x1, y1], [x2]] = box;
+      const box = getBoundingBox(node, config);
+      const { x1, y1, x2 } = box;
       return {
         node,
         nonIntrusive: {
@@ -222,7 +218,7 @@ function drawEvent(event: Event, config: RenderConfig): NodeWithNonIntrusive {
           toprightX: 0,
           bottomLeftX: 0,
           bottomRightX: 0,
-          box: emptyBox(),
+          box: new BBox(),
         },
       };
   }
@@ -291,7 +287,7 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
     count: number,
     direction: 'up' | 'down',
     scaleY = 1,
-    ignoreBeam = false
+    ignoreBeam = false,
   ): LayoutTree<RenderObject> {
     const dots: LayoutTree<RenderObject>[] = Array.from({ length: count }, (_, i) => ({
       type: 'Node',
@@ -316,7 +312,7 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
           : moveDown(
               ignoreBeam
                 ? transposeDotGap
-                : (beamGap + beamHeight) * action.timeMultiplier + transposeDotGap
+                : (beamGap + beamHeight) * action.timeMultiplier + transposeDotGap,
             ),
       children: dots,
     };
@@ -330,8 +326,8 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
 
     const node = wrapNode(notrans(), ...children);
 
-    const box = getBoundingBox(node, config)!;
-    const [[_, y1], [x2]] = box;
+    const box = getBoundingBox(node, config);
+    const { y1, x2 } = box;
     const nonIntrusive: EntityNonIntrusive = {
       fullY: y1,
       topY: y1,
@@ -356,12 +352,12 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
       toprightX: config.glyphWidth / 2,
       bottomLeftX: -config.glyphWidth / 2,
       bottomRightX: config.glyphWidth / 2,
-      box: emptyBox(),
+      box: new BBox(),
     };
 
     if (action.dot) {
       const dots = getAsideDots(action.dot);
-      const [_, [x2]] = getBoundingBox(dots, config)!;
+      const { x2 } = getBoundingBox(dots, config);
       nonIntrusive.bottomRightX = x2;
       rootChildren.push(dots);
     }
@@ -376,7 +372,7 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
 
       if (pitch.accidental) {
         const accidental = getAccidental(pitch.accidental, scaleY);
-        const [[x1]] = getBoundingBox(accidental, config)!;
+        const { x1 } = getBoundingBox(accidental, config);
         nonIntrusive.topleftX = Math.min(nonIntrusive.topleftX, x1);
         children.push(accidental);
       }
@@ -384,7 +380,7 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
       if (pitch.octaveTranspose < 0) {
         const tdots = getTransposeDots(-pitch.octaveTranspose, 'down', scaleY, !!index);
         if (index) {
-          const [_, [__, y2]] = getBoundingBox(tdots, config)!;
+          const { y2 } = getBoundingBox(tdots, config);
           // 下加点侵入下方音符，需上移
           if (y2 > 0) currentY -= y2;
         }
@@ -392,7 +388,7 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
         children.push(tdots);
       } else if (pitch.octaveTranspose > 0) {
         const tdots = getTransposeDots(pitch.octaveTranspose, 'up', scaleY);
-        const [[_, y1]] = getBoundingBox(tdots, config)!;
+        const { y1 } = getBoundingBox(tdots, config);
         nonIntrusive.topY = currentY - y1;
         children.push(tdots);
       } else {
@@ -400,13 +396,13 @@ function drawSound(action: Action, config: RenderConfig): NodeWithNonIntrusive {
       }
 
       const tree = wrapNode(moveDown(currentY), ...children);
-      const [[_, y1]] = getBoundingBox(tree, config)!;
+      const { y1 } = getBoundingBox(tree, config);
       currentY = nonIntrusive.fullY = y1;
       return tree;
     });
     rootChildren.push(...pitchNodes);
     const node = wrapNode(notrans(), ...rootChildren);
-    nonIntrusive.box = getBoundingBox(node, config) ?? emptyBox();
+    nonIntrusive.box = getBoundingBox(node, config);
     return {
       node,
       nonIntrusive,
@@ -452,7 +448,7 @@ function drawTag(entity: TagEntity, config: RenderConfig): LayoutTree<RenderObje
             width: config.timeSignatureLeftPadding,
             height: 0,
           },
-        })
+        }),
       );
       children.push(
         wrapNode(notrans(), {
@@ -463,7 +459,7 @@ function drawTag(entity: TagEntity, config: RenderConfig): LayoutTree<RenderObje
             width: config.timeSignatureRightPadding,
             height: 0,
           },
-        })
+        }),
       );
       return node;
     }

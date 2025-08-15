@@ -39,9 +39,27 @@ export const IdentityTransform: Transform = {
   localScale: [1, 1],
 };
 
-export type BBox = [XY, XY];
-
-export type BoundingBox = BBox | null;
+export class BBox {
+  x1 = 0;
+  y1 = 0;
+  x2 = 0;
+  y2 = 0;
+  isEmpty(): boolean {
+    return this.x1 === 0 && this.y1 === 0 && this.x2 === 0 && this.y2 === 0;
+  }
+  get width(): number {
+    return this.x2 - this.x1;
+  }
+  get height(): number {
+    return this.y2 - this.y1;
+  }
+  constructor(x1 = 0, y1 = 0, x2 = 0, y2 = 0) {
+    this.x1 = x1;
+    this.y1 = y1;
+    this.x2 = x2;
+    this.y2 = y2;
+  }
+}
 
 export enum AnchorPosition {
   Centre,
@@ -138,22 +156,3 @@ export const scale = (sx: number, sy: number): Transform => ({
 });
 export const scaleHrztl = (sx: number): Transform => scale(sx, 1);
 export const scaleVrtcl = (sy: number): Transform => scale(1, sy);
-
-export function getBoxSize(box: BoundingBox): Size {
-  if (!box) return [0, 0];
-  const [[x1, y1], [x2, y2]] = box;
-  return [x2 - x1, y2 - y1];
-}
-export function getBoxWidth(box: BoundingBox): number {
-  if (!box) return 0;
-  const [[x1, _y1], [x2, _y2]] = box;
-  return x2 - x1;
-}
-export function getBoxHeight(box: BoundingBox): number {
-  if (!box) return 0;
-  const [[_x1, y1], [_x2, y2]] = box;
-  return y2 - y1;
-}
-export function emptyBox(): BBox {
-  return [[0, 0], [0, 0]];
-}

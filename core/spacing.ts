@@ -1,5 +1,4 @@
 import { SlicedMusic } from './slice';
-import { BoundingBox, emptyBox, getBoxWidth } from '../types/layout';
 import { zip } from 'lodash-es';
 import { NodeWithNonIntrusive } from './engrave/entities';
 
@@ -19,8 +18,8 @@ export function computeSliceOffsets(
   const sliceMetrics = nodesBySlice.map((nodes) => {
     const leftMost = Math.min(...nodes.map((node) => node.nonIntrusive.bottomLeftX));
     const rightMost = Math.max(...nodes.map((node) => node.nonIntrusive.bottomRightX));
-    const fullLefts = nodes.map((node) => node.nonIntrusive.box[0][0]);
-    const fullRights = nodes.map((node) => node.nonIntrusive.box[1][0]);
+    const fullLefts = nodes.map((node) => node.nonIntrusive.box.x1);
+    const fullRights = nodes.map((node) => node.nonIntrusive.box.x2);
     const width = rightMost - leftMost;
     return { leftMost, rightMost, width, fullLefts, fullRights };
   });

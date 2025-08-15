@@ -1,35 +1,36 @@
 import { RenderConfig } from '../types/config';
 import {
-  BoundingBox,
   LayoutTree,
   normAnchorPosition,
   RenderObject,
   Transform,
   Size,
+  BBox,
 } from '../types/layout';
 
 //#region 工具函数
 
-export function bboxUnion(a: BoundingBox, b: BoundingBox): BoundingBox {
-  if (!a) return b;
-  if (!b) return a;
-  const [[ax1, ay1], [ax2, ay2]] = a;
-  const [[bx1, by1], [bx2, by2]] = b;
-  return [
-    [Math.min(ax1, bx1), Math.min(ay1, by1)],
-    [Math.max(ax2, bx2), Math.max(ay2, by2)],
-  ];
+export function bboxUnion(a: BBox, b: BBox): BBox {
+  if (a.isEmpty()) return b;
+  if (b.isEmpty()) return a;
+  return new BBox(
+    Math.min(a.x1, b.x1),
+    Math.min(a.y1, b.y1),
+    Math.max(a.x2, b.x2),
+    Math.max(a.y2, b.y2)
+  );
 }
 
-function applyTransform(box: BoundingBox, transform: Transform): BoundingBox {
-  if (!box) return null;
+function applyTransform(box: BBox, transform: Transform): BBox {
+  if (box.isEmpty()) return box;
   const [dx, dy] = transform.localPosition;
   const [sx, sy] = transform.localScale;
-  const [[bx1, by1], [bx2, by2]] = box;
-  return [
-    [bx1 * sx + dx, by1 * sy + dy],
-    [bx2 * sx + dx, by2 * sy + dy],
-  ];
+  return new BBox(
+    box.x1 * sx + dx,
+    box.y1 * sy + dy,
+    box.x2 * sx + dx,
+    box.y2 * sy + dy
+  );
 }
 
 //#endregion
@@ -59,21 +60,23 @@ export function getBoundingBox(
   tree: LayoutTree<RenderObject>,
   config: RenderConfig,
   ignoreTypes?: string[]
-): BoundingBox {
+): BBox {
   if (tree.type === 'Leaf') {
-    if (ignoreTypes?.includes(tree.object.type)) return null;
+    if (ignoreTypes?.includes(tree.object.type)) return new BBox();
     const size = getSize(tree.object, config);
     const [width, height] = size;
     const [ax, ay] = normAnchorPosition(tree.anchor);
-    return [
-      [-ax * width, -ay * height],
-      [(1 - ax) * width, (1 - ay) * height],
-    ];
+    return new BBox(
+      -ax * width,
+      -ay * height,
+      (1 - ax) * width,
+      (1 - ay) * height
+    );
   } else if (tree.type === 'Node') {
     const boxes = tree.children.map((child) =>
       applyTransform(getBoundingBox(child, config, ignoreTypes), tree.transform)
     );
-    return boxes.reduce(bboxUnion, null);
+    return boxes.reduce(bboxUnion, new BBox());
   }
   throw new Error(`Unknown layout tree type`);
 }

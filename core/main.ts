@@ -1,19 +1,9 @@
-import { zip } from 'lodash-es';
-import { Interval, IntervalMap, Music } from '../types/abstract';
-import { SlicedEntity, sliceMusic } from './slice';
+import { Music } from '../types/abstract';
+import { sliceMusic } from './slice';
 import { engraveSliceElementWithCfg } from './engrave/entities';
-import { bboxUnion, getBoundingBox, getBoundingBoxWithCfg } from './bounding';
+import { getBoundingBox } from './bounding';
 import { computeSliceOffsets } from './spacing';
-import {
-  BBox,
-  BoundingBox,
-  emptyBox,
-  LayoutTree,
-  moveDown,
-  moveRight,
-  notrans,
-  RenderObject,
-} from '../types/layout';
+import { LayoutTree, moveDown, moveRight, notrans, RenderObject } from '../types/layout';
 import { engraveBeams } from './engrave/beams';
 import { engraveSpans } from './engrave/spans';
 import { RenderConfig } from '../types/config';
@@ -22,7 +12,7 @@ import { engraveAccolades, getAccoladeWidth, VoiceMetric } from './engrave/accol
 
 export function engraveMusic(music: Music, config: RenderConfig): LayoutTree<RenderObject> {
   const { lineWidth } = config;
-  const { slices, slicedMusic } = sliceMusic(music);
+  const slicedMusic = sliceMusic(music);
 
   const engravedSlicesByVoice = slicedMusic.voices.map(({ entities }) =>
     entities.map(engraveSliceElementWithCfg(config))
@@ -93,10 +83,9 @@ function computeVoiceOffsetY(voiceTrees: LayoutTree<RenderObject>[], config: Ren
       else currentOffset += config.lineGap;
     }
     const bbox = getBoundingBox(voiceTree, config);
-    const [[_, y1], [__, y2]] = bbox ?? emptyBox();
+    const { y1, height } = bbox;
     const baseY = currentOffset + (y1 < 0 ? -y1 : 0);
     offsetsY.push(baseY);
-    const height = y2 - y1;
     voiceMetrics.push({
       topY: currentOffset,
       baseY,

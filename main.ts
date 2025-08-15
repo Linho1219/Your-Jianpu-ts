@@ -7,7 +7,7 @@ import { flattenLayoutTree } from './core/flatten';
 import fs from 'node:fs';
 import { renderSVG } from './svg/render';
 import { getBoundingBox } from './core/bounding';
-import { emptyBox, moveUp } from './types/layout';
+import { BBox, moveUp } from './types/layout';
 import { wrapNode } from './core/engrave/utils';
 
 const ud = undefined;
@@ -410,7 +410,7 @@ const testMusic: Music = {
 };
 
 const engraved = engraveMusic(testMusic, renderConfig);
-const [[_, y1], [__, y2]] = getBoundingBox(engraved, renderConfig) ?? emptyBox();
+const { y1, y2 } = getBoundingBox(engraved, renderConfig);
 const movedEngraved = wrapNode(moveUp(y1), engraved);
 const totalHeight = y2 - y1;
 const flattened = flattenLayoutTree(movedEngraved);

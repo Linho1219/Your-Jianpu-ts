@@ -45,7 +45,7 @@ export function engraveAccolades(
     moveLeft(config.accoladeLineWidth),
     ...accolades.map((accolade) => {
       const range = getYRange(accolade.range);
-      console.log(range);
+      // console.log(range);
       if (accolade.type === 'Brace') return engraveBrace(config, ...range);
       if (accolade.type === 'Bracket') return engraveBracket(config, ...range);
       throw new Error(`Unknown accolade type: ${accolade.type}`);

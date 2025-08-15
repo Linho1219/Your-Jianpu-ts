@@ -1,4 +1,4 @@
-import { BoundingBox, LayoutTree, move, notrans, scaleHrztl } from '../../types/layout';
+import { LayoutTree, move, notrans, scaleHrztl } from '../../types/layout';
 import { RenderConfig } from '../../types/config';
 import { RenderObject, AnchorPosition } from '../../types/layout';
 import { Interval, IntervalMap, Span, Spans } from '../../types/abstract';

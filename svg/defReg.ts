@@ -161,10 +161,7 @@ function extractSymbol(
     metrics: {
       width,
       height,
-      bbox: [
-        [x1, y1],
-        [x2, y2],
-      ],
+      bbox: new BBox(x1, y1, x2, y2),
     },
   };
 }

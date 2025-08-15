@@ -1,14 +1,6 @@
 import Fraction from 'fraction.js';
 import { Event } from '../types/basic';
-import {
-  AbstractEntity,
-  Span,
-  IntervalMap,
-  Interval,
-  Spans,
-  Music,
-  Voice,
-} from '../types/abstract';
+import { AbstractEntity, IntervalMap, Interval, Music, Voice } from '../types/abstract';
 
 //#region 类型定义
 
@@ -46,10 +38,7 @@ export interface SlicedUnit {
  * @param entitiesOfVoices 原始的 Music 中的各个声部实体
  * @return 切分后的结果数组
  */
-function sliceVoices(entitiesOfVoices: AbstractEntity[][]): {
-  slicedUnits: SlicedUnit[];
-  slicedVoices: SlicedEntity[][];
-} {
+function sliceVoices(entitiesOfVoices: AbstractEntity[][]): SlicedEntity[][] {
   const voiceRelates = entitiesOfVoices.map((voice) => ({
     /** 等待处理的符号数组 */
     pendings: voice,
@@ -139,10 +128,11 @@ function sliceVoices(entitiesOfVoices: AbstractEntity[][]): {
       voiceRelate.slicedArr.push(voiceRelate.sliced);
     });
   }
-  return {
-    slicedUnits,
-    slicedVoices: voiceRelates.map(({ slicedArr }) => slicedArr),
-  };
+  // return {
+  //   slicedUnits,
+  //   slicedVoices: voiceRelates.map(({ slicedArr }) => slicedArr),
+  // };
+  return voiceRelates.map(({ slicedArr }) => slicedArr);
 }
 
 //#endregion
@@ -153,9 +143,7 @@ function sliceVoices(entitiesOfVoices: AbstractEntity[][]): {
  * @returns 一个函数，接受 Interval 并返回新的 Interval
  */
 function getSpansRemapper(elements: SlicedEntity[]) {
-  const mask = elements.map(
-    (e): e is AbstractEntity => !!e && e.type !== 'PartialEvent'
-  );
+  const mask = elements.map((e): e is AbstractEntity => !!e && e.type !== 'PartialEvent');
   /** 旧 index -> 新 index 的映射 */
   const mapperDict = new Map<number, number>();
   for (let oldIndex = 0, newIndex = 0; newIndex < mask.length; oldIndex++) {
@@ -184,7 +172,7 @@ export function sliceMusic(music: Music) {
   const { voices } = music;
   const entitiesOfVoices = voices.map((voice) => [...voice.entities]);
 
-  const { slicedUnits, slicedVoices } = sliceVoices(entitiesOfVoices);
+  const slicedVoices = sliceVoices(entitiesOfVoices);
   const remappers = slicedVoices.map(getSpansRemapper);
   const slicedMusic: SlicedMusic = {
     ...music,
@@ -192,16 +180,11 @@ export function sliceMusic(music: Music) {
       type: voice.type,
       entities: slicedVoices[index],
       spans: IntervalMap.fromRecords(
-        voice.spans
-          .entries()
-          .map(([interval, span]) => [remappers[index](interval), span])
+        voice.spans.entries().map(([interval, span]) => [remappers[index](interval), span])
       ),
       beams: voice.beams.map((interval) => remappers[index](interval)),
     })),
   };
 
-  return {
-    slices: slicedUnits,
-    slicedMusic,
-  };
+  return slicedMusic;
 }
